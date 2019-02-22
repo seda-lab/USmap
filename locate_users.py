@@ -39,7 +39,7 @@ if len(sys.argv) > 4:
 	targetfilename = sys.argv[4];
 	target2, dims = get_place(targetfilename)
 else:
-	target2, dims = get_target("United Kingdom")
+	target2, dims = get_target("United States")
 
 #target = box(dims[0], dims[1], dims[2], dims[3]);	
 

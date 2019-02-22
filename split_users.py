@@ -18,7 +18,7 @@ if len(sys.argv) > 3:
 	targetfilename = sys.argv[3];
 	target2, dims = get_place(targetfilename)
 else:
-	target2, dims = get_target("United Kingdom")
+	target2, dims = get_target("United States")
 
 
 with open(tweet_file,'r') as datafile:

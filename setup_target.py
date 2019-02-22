@@ -46,7 +46,6 @@ def draw_place(target):
 		
 		#draw interior
 		for ip in p[1]:
-			print(ip)
 			patch = pgn(ip, edgecolor='black', facecolor='white', alpha=1, zorder=1  );
 			ax.add_patch(patch)
 

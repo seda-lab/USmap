@@ -64,13 +64,13 @@ def draw_map(partition, output, poly_type, target_poly=None):
 		#print("interpreting", poly_type, "as polygon database");
 		county = county_lookup(dbfilename);
 
-	target, dims = get_target("United Kingdom")
+	target, dims = get_target("United States")
 
 	if target_poly:
 		targetfilename = target_poly;
 		target2, dims = get_place(targetfilename)
 	else:
-		target2, dims = get_target("United Kingdom")
+		target2, dims = get_target("United States")
 	
 		
 	best_partition = {}

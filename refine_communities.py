@@ -71,7 +71,7 @@ if len(sys.argv) > 5:
 	targetfilename = sys.argv[5];
 	target2, dims = get_place(targetfilename)
 else:
-	target2, dims = get_target("United Kingdom")		
+	target2, dims = get_target("United States")		
 
 		
 connections = {}

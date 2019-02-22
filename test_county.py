@@ -36,12 +36,11 @@ ax = fig.add_subplot(111)
 #######################
 ##Draw the outlines  ##
 #######################	
-#clist = ["0500000us34029","0500000us34013","0500000us34031", "0500000us34003","0500000us34025" ]
 min_lat = np.inf;
 min_lon = np.inf;
 max_lat = -np.inf;
 max_lon = -np.inf;
-#for place in clist: 
+
 for place in county.county_dict:
 
 	mp = MultiPolygon( county.county_dict[place] );
@@ -54,8 +53,14 @@ for place in county.county_dict:
 	
 	pols2 = poly_to_coords( mp ); 
 	for p in pols2:
-		countypgn = pgn(p, fc=random_colour(), lw=1)
-		ax.add_artist(countypgn)
+		
+		patch = pgn(p[0], edgecolor='black', facecolor='white', alpha=1, zorder=0  );
+		ax.add_patch(patch)
+		
+		#draw interior
+		for ip in p[1]:
+			patch = pgn(ip, edgecolor='black', facecolor='white', alpha=1, zorder=10  );
+			ax.add_patch(patch)
 
 border = 0;
 ax.set_xlim(min_lat-border,max_lat+border);
@@ -63,7 +68,7 @@ ax.set_ylim(min_lon-border,max_lon+border);
 ax.set_xticklabels([])
 ax.set_yticklabels([])
 	
-plt.savefig("UnitedStates_grid.png")
+plt.savefig(filepath.split(".")[0] + ".png")
 plt.close();
 
 
