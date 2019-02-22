@@ -3,15 +3,23 @@ import sys
 import ast
 from setup_target import *
 	
+
 tweet_file = sys.argv[1]
 outfilename = sys.argv[2];
 #statsfilename = sys.argv[3];
+
 	
 num_tweets = 0;
 skipped = 0;
 used = 0;
 user_locations = {}; # user : {loc1 : count, loc2 : count, ... }
-target2, dims = get_target()
+
+if len(sys.argv) > 3:
+	targetfilename = sys.argv[3];
+	target2, dims = get_place(targetfilename)
+else:
+	target2, dims = get_target("United Kingdom")
+
 
 with open(tweet_file,'r') as datafile:
 	for x in datafile:

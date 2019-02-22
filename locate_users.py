@@ -28,19 +28,20 @@ dbfilename = "";
 try:
 	size = int(sys.argv[3]);	
 	print("interpreting", sys.argv[3], "as gridsize");
-except;
+except:
 	dbfilename = sys.argv[3];
 	print("interpreting", sys.argv[3], "as polygon database");
 
 ###############################################
 ##Ignore everything outside this bounding box##
 ###############################################
-if len(sys.argv) >= 4:
+if len(sys.argv) > 4:
 	targetfilename = sys.argv[4];
 	target2, dims = get_place(targetfilename)
 else:
 	target2, dims = get_target("United Kingdom")
-	
+
+#target = box(dims[0], dims[1], dims[2], dims[3]);	
 
 ##############################
 ##Set up target polygon plot##
@@ -99,7 +100,7 @@ with open(infilename, 'r') as datafile:
 				mp = Point(ll_xmin, ll_ymin); 	##include sea points
 			else:
 				mp = box(ll_xmin, ll_ymin, ll_xmax, ll_ymax);
-
+			
 			if dbfilename == "":
 	
 				#get the poly bounds
@@ -125,9 +126,22 @@ with open(infilename, 'r') as datafile:
 						elif pxmin == xmin: idx_min = 0;
 						elif pymin == ymin: idy_min = 0;
 						else:
-							print(mp.bounds, idx_max, idx_min, idy_max, idy_min, target2.bounds);
-							print("Out of bounds")
-							sys.exit(1);
+							mp = target2.intersection(mp);
+							pxmin = mp.bounds[0]; pxmax = mp.bounds[2];
+							pymin = mp.bounds[1]; pymax = mp.bounds[3];
+
+							idx_min = int( abs(pxmin - xmin)/(xstep) );
+							idy_min = int( abs(pymin - ymin)/(ystep) );
+							idx_max = int( abs(pxmax - xmin)/(xstep) );
+							idy_max = int( abs(pymax - ymin)/(ystep) );
+					
+							#print(size);
+							#print(pxmax, pymax, pxmin, pymin);
+							#print(xmax, ymax, xmin, ymin);
+							#print(mp.bounds)
+							#print(target2.bounds);
+							#print("Out of bounds")
+							#sys.exit(1);
 				
 
 				for i in range(idx_min, idx_max+1):

@@ -57,28 +57,16 @@ G=nx.Graph()
 confilename = sys.argv[1];
 outfilename = sys.argv[2];
 indfilename = sys.argv[3];
-#statsfilename = sys.argv[4];
-#size = int(sys.argv[4])
 palg = "louvain"
-res = 1; #float(sys.argv[7])
+res = 1;
 
-"""
-connections = {}
-with open(confilename, 'r') as infile:
-	for line in infile:
-		connections = ast.literal_eval(line);
-connections = np.array(connections);
-sizex, sizey = connections.shape
-print("sizes of connections = ", connections.shape)
-"""
+
 connections = {}
 with open(confilename, 'r') as infile:
 	for line in infile:
 		connections = json.loads(line);
 
 		
-target2, dims = get_target()
-
 
 ################
 ##set up graph##
@@ -89,14 +77,14 @@ min_connection = 0;
 for i in connections: 
 
 	##eliminate nodes with no self connections (usually sparsely populated)
-	#if (i not in connections[i]) or (connections[i][i] <= min_self): continue;
+	if (i not in connections[i]) or (connections[i][i] <= min_self): continue;
 
 	for j in connections[i]:
 		if j != i:
 			if not G.has_edge(i,j): #symmetric
 
 				##don't join to eliminated nodes
-				#if (j not in connections) or (j not in connections[j][j]) or (connections[j][j] <= min_self): continue;
+				if (j not in connections) or (j not in connections[j]) or (connections[j][j] <= min_self): continue;
 				ew = connections[i][j];
 				if (j in connections) and (i in connections[j]):
 					ew += connections[j][i]
@@ -145,7 +133,7 @@ for i in range(Nr):
 		max_mod = mod;
 		best_partition = copy.deepcopy(partition);
 		
-	print(100-i, mod, max_mod)
+	print(100-i, mod, int(len(set(partition.values()))), max_mod, int(len(set(best_partition.values()))))
 	#sys.exit(1);
 	
 vmax = float(len(set(best_partition.values())))

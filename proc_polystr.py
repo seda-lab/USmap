@@ -8,19 +8,32 @@ from shapely.ops import cascaded_union
 
 def poly_to_coords(poly):
 
-	pols = [];
+	polys = []
 	if poly.geom_type == "Polygon":
 		lons, lats = poly.exterior.coords.xy
 		x,y=(lons, lats);
-		pols.append( list(zip(x,y)) )
-		
+		exterior=list(zip(x,y))
+		interior = []
+		for p in poly.interiors:
+			lons, lats = p.coords.xy;
+			x,y=(lons, lats);
+			interior.append( list(zip(x,y)) )
+		polys.append([ exterior, interior ])
+			
+			
 	if poly.geom_type == "MultiPolygon":
 		for p in poly:
 			lons, lats = p.exterior.coords.xy
 			x,y=(lons, lats);
-			pols.append( list(zip(x,y)) )
-				
-	return pols;
+			exterior=list(zip(x,y))
+			interior = []
+			for ip in p.interiors:
+				lons, lats = ip.coords.xy;
+				x,y=(lons, lats);
+				interior.append( list(zip(x,y)) )
+			polys.append([ exterior, interior ])
+	
+	return polys;
 	
 def proc_polystr(polys, llcrnrlat, llcrnrlon, urcrnrlat, urcrnrlon, tolerance=-1):
 	"""Process a string into a shapely polygon

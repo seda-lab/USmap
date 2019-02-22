@@ -16,28 +16,80 @@ from shapely.geometry import box
 from shapely.ops import cascaded_union
 
 import numpy as np
+from proc_polystr import poly_to_coords
+
+import matplotlib.pyplot as plt
+from matplotlib.collections import PolyCollection
+import matplotlib.cm as cm
+import matplotlib as mpl
+from matplotlib.patches import Polygon as pgn
+from matplotlib.collections import PatchCollection
+
 from country_lookup import *
-
 country = country_lookup("country.db");
-	
-def get_target():
-	
 
-	target = box(-125, 24.5, -67, 49.5);
+from county_lookup import *
+fgs = county_lookup("fgs.db");
+
+def draw_place(target):
+	
+	fig = plt.figure()
+	ax = fig.add_subplot(111)
+
+	dims = target.bounds
+	polys = poly_to_coords(target);
+
+	for p in polys:
+		
+		patch = pgn(p[0], edgecolor='black', facecolor='white', alpha=1, zorder=0  );
+		ax.add_patch(patch)
+		
+		#draw interior
+		for ip in p[1]:
+			print(ip)
+			patch = pgn(ip, edgecolor='black', facecolor='white', alpha=1, zorder=1  );
+			ax.add_patch(patch)
+
+	ax.set_xlim(dims[0], dims[2]);
+	ax.set_ylim(dims[1], dims[3]);
+
+	plt.axis("off")			
+	plt.show();
+	plt.close();
+	
+	
+def get_place(filename):
+	target = []
+	with open(filename, 'r') as infile:
+		for line in infile:
+			pols, ipols = ast.literal_eval(line);
+			poly = Polygon(pols, ipols);
+			target.append(poly);
+	target = cascaded_union( MultiPolygon(target) );
 	
 	xmin = target.bounds[0]; xmax = target.bounds[2];
 	ymin = target.bounds[1]; ymax = target.bounds[3];
 
-	target2 = cascaded_union( country.lookup("United States") );
+	return target, [xmin, ymin, xmax, ymax]
+			
+def get_target(place="United Kingdom"):
+	
+	if place == "United States":
+		target = box(-125, 24.5, -67, 49.5);
+		target2 = cascaded_union( country.lookup("United States") );
+		target2 = target.intersection( target2 );
+	else:
+		target = box(-5.8, 49.9, 1.8, 55.9 );
+		fgs.load_all()
+		regions = {}
+		target2 = []
+		for p in fgs.county_dict:
+			regions[p] = cascaded_union( fgs.county_dict[p] );
+			target2.append(regions[p].buffer(0.0001) );
+		target2 = cascaded_union( target2 );
 
-	target2 = target2.simplify(0, preserve_topology=False);
-	if target2.geom_type=="Polygon": target2 = MultiPolygon([target2]);
-	target2 = target.intersection( target2 );
-	lt = []; 
-	for i,t in enumerate(target2):
-		lt.append(t);
-		if i == 1: break;
-	target2 = MultiPolygon(lt)
+	xmin = target.bounds[0]; xmax = target.bounds[2];
+	ymin = target.bounds[1]; ymax = target.bounds[3];
 
 	return target2, [xmin, ymin, xmax, ymax]
 
@@ -75,7 +127,9 @@ def box_id_to_ij(box_id, size):
 	i = int((box_id - j)/size);
 	return (i,j)
 					
-				
+def ij_to_box_id(i,j, size):
+	return i*size + j;
+					
 def box_to_coords(mp):
 	x, y = mp.exterior.coords.xy
 	x = list(x); y = list(y);	

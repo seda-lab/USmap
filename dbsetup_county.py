@@ -10,7 +10,6 @@ def str_or_none(st):
         return None
     return str(st).lower()
     
-url = 'http://biogeo.ucdavis.edu/data/gadm2.8/gadm28.shp.zip'
 
 if len(sys.argv) < 2:
 	print("usage: countysetup.py infilename outfilename");
@@ -26,9 +25,9 @@ print("Writing db to", outfilename );
 
 conn = sqlite3.connect(outfilename)
 c = conn.cursor()
-c.execute('''CREATE TABLE uscounty (n0 TEXT COLLATE NOCASE, n1 TEXT COLLATE NOCASE, n2 TEXT COLLATE NOCASE, n3 TEXT COLLATE NOCASE, n4 TEXT COLLATE NOCASE, n5 TEXT COLLATE NOCASE, poly BLOB)''')
+c.execute('''CREATE TABLE county (n0 TEXT COLLATE NOCASE, n1 TEXT COLLATE NOCASE, n2 TEXT COLLATE NOCASE, n3 TEXT COLLATE NOCASE, n4 TEXT COLLATE NOCASE, n5 TEXT COLLATE NOCASE, poly BLOB)''')
 for i in range(0, 6):
-   c.execute('CREATE INDEX uscounty' + str(i) + ' ON uscounty (n' + str(i) + ')')
+   c.execute('CREATE INDEX county' + str(i) + ' ON county (n' + str(i) + ')')
 conn.commit()
 
 fi = fiona.open(infilename, 'r')
@@ -50,7 +49,7 @@ while True:
 	
 	count += 1
 	
-	c.execute("INSERT INTO uscounty VALUES (:n0, :n1, :n2, :n3, :n4, :n5, :poly)", {
+	c.execute("INSERT INTO county VALUES (:n0, :n1, :n2, :n3, :n4, :n5, :poly)", {
 		'n0': n0,
 		'n1': n1,
 		'n2': n2,

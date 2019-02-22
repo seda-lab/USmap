@@ -30,11 +30,15 @@ outfilename = sys.argv[3];
 confilename = sys.argv[4];
 senfilename = sys.argv[5];
 #statsfilename = sys.argv[6];
-size = int(sys.argv[6]);
-dbfilename = None;
-if len(sys.argv) > 7:	
-	dbfilename = sys.argv[7];
 
+dbfilename = None;
+size = 0;
+try:
+	size = int(sys.argv[6]);	
+	print("interpreting", sys.argv[6], "as gridsize");
+except:
+	dbfilename = sys.argv[6];
+	print("interpreting", sys.argv[6], "as polygon database");
 	
 
 ##user -> box map
@@ -59,16 +63,8 @@ with open(userfilename, 'r') as datafile:
 				bxs.append(idx);
 			user_boxes[ words[0] ] = bxs;
 	
-
-if dbfilename: 
-	size = len(bx_map)
-		
-connections = {}; #[ [] for i in range(size*size) ];
-#for i in range(size*size): connections[i] = [ 0 for j in range(size*size) ];
-
-sentiment = {}; #[ [] for i in range(size*size) ];
-#for i in range(size*size): sentiment[i] = [ 0 for j in range(size*size) ];
-
+connections = {}; 
+sentiment = {};
 
 ofile = open(outfilename, 'w');
 		
