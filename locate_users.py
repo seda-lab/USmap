@@ -19,7 +19,7 @@ from shapely.ops import cascaded_union
 import numpy as np
 from setup_target import *
 from county_lookup import *
-
+import whereami
 
 infilename = sys.argv[1];
 outfilename = sys.argv[2];
@@ -39,7 +39,7 @@ if len(sys.argv) > 4:
 	targetfilename = sys.argv[4];
 	target2, dims = get_place(targetfilename)
 else:
-	target2, dims = get_target("United States")
+	target2, dims = get_target(whereami.meta_location)
 
 #target = box(dims[0], dims[1], dims[2], dims[3]);	
 

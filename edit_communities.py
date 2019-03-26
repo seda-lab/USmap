@@ -45,6 +45,7 @@ import itertools
 from operator import itemgetter
 from networkx.algorithms import community as cm
 import random
+import whereami
 
 def heaviest(G):
 	u, v, w = max(G.edges(data='weight'), key=itemgetter(2))
@@ -67,14 +68,14 @@ except:
 	for p in county.county_dict:
 		county.county_dict[p] = cascaded_union(MultiPolygon(county.county_dict[p])).buffer(0.001);
 
-if len(sys.argv) > 4:
-	targetfilename = sys.argv[4];
+nbrs = int(sys.argv[4])
+if len(sys.argv) > 5:
+	targetfilename = sys.argv[5];
 	target2, dims = get_place(targetfilename)
 else:
-	target2, dims = get_target("United States")		
+	target2, dims = get_target(whereami.meta_location)		
 
 		
-
 
 best_partition = {}
 with open(partfilename, 'r') as infile:
@@ -111,22 +112,29 @@ else:
 
 if dbfilename == "":
 
-	###Add empty space to community
+	###Add empty space to community map
 	print("Adding empty space")
 
+	fill_boxes = {}
 	for box_id, box_number, mp in generate_land(dims, target2, size, contains=False):
 		if str(box_id) not in best_partition:
 			nbr_com = {}
+			nnb = 0;
 			for nbr in neighbours[ str(box_id) ]:
 				if nbr in best_partition:
+					nnb += 1;
 					if best_partition[ nbr ] in nbr_com:
 						nbr_com[ best_partition[ nbr ] ] += 1
 					else:
 						nbr_com[ best_partition[ nbr ] ] = 1
-			if len(nbr_com) > 0:
-				best_partition[str(box_id)] = max(nbr_com, key=nbr_com.get);	
-			else:
-				best_partition[str(box_id)] = random.randint(0,vmax-1);	
+						
+			if nnb > nbrs:
+				#best_partition[str(box_id)] = max(nbr_com, key=nbr_com.get);	
+				fill_boxes[str(box_id)] = max(nbr_com, key=nbr_com.get);	
+			elif nbrs == 0:
+				fill_boxes[str(box_id)] = random.randint(0,vmax-1);	
+			#else:
+			#	best_partition[str(box_id)] = random.randint(0,vmax-1);	
 
 
 	##get largest cpt
@@ -134,13 +142,18 @@ if dbfilename == "":
 	com_boxes = { i:[] for i in range(vmax) }	
 
 	for box_id, box_number, mp in generate_land(dims, target2, size, contains=False):
-		if True: #str(box_id) in best_partition:
+		#if True: 
+		cid = None;
+		if str(box_id) in best_partition: cid = best_partition[str(box_id)];
+		if str(box_id) in fill_boxes: cid = fill_boxes[str(box_id)];
+		
+		if cid is not None:
 			##draw costal edges
 			if target2.contains(mp):
-				com_polys[ best_partition[str(box_id)] ].append( mp.buffer(0.0001) );
+				com_polys[ cid ].append( mp.buffer(0.0001) );
 			else:
-				com_polys[ best_partition[str(box_id)] ].append( target2.intersection(mp).buffer(0.0001) )
-			com_boxes[ best_partition[str(box_id)] ].append( str(box_id) );
+				com_polys[ cid ].append( target2.intersection(mp).buffer(0.0001) )
+			com_boxes[ cid ].append( str(box_id) );
 	
 	##find the boxes not connected to the largest component
 	skipped_boxes = []
@@ -165,22 +178,36 @@ if dbfilename == "":
 
 			nbr_com = {};
 			for nbr in neighbours[ box_id ]:
-				if nbr in best_partition:
-					if best_partition[ nbr ] in nbr_com:
-						nbr_com[ best_partition[ nbr ] ] += 1
+				cid = None;
+				if nbr in best_partition: cid = best_partition[ nbr ];
+				if nbr in fill_boxes: cid = fill_boxes[ nbr ];
+				
+				if cid is not None:
+					if cid in nbr_com:
+						nbr_com[ cid ] += 1
 					else:
-						nbr_com[ best_partition[ nbr ] ] = 1
+						nbr_com[ cid ] = 1
 
 			#print( best_partition[box_id], nbr_com)
 			#print(best_partition[box_id], ":", box_id, nbr_com, neighbours[ box_id ])
 			if len(nbr_com) > 0:
-				old_com = best_partition[box_id];
-				best_partition[box_id] = max(nbr_com, key=nbr_com.get);	
-				if old_com != best_partition[box_id]:
-					change = True;
-
+				
+				if box_id in best_partition: 
+					old_com = best_partition[ box_id ];
+					best_partition[box_id] = max(nbr_com, key=nbr_com.get);	
+					if old_com != best_partition[box_id]:
+						change = True;
+						
+				if box_id in fill_boxes: 
+					old_com = fill_boxes[ box_id ];
+					fill_boxes[box_id] = max(nbr_com, key=nbr_com.get);	
+					if old_com != fill_boxes[box_id]:
+						change = True;
+				
 
 with open(outfilename, 'w') as ofile:
-	jsoned = json.dumps(best_partition);
+	total = { "data":best_partition, "extrap":fill_boxes };
+	jsoned = json.dumps(total);
 	ofile.write( jsoned )	
+	
 

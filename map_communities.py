@@ -49,6 +49,7 @@ import community
 import itertools
 from operator import itemgetter
 from networkx.algorithms import community as cm
+import whereami
 
 infilename = sys.argv[1]
 outfilebase = sys.argv[2]
@@ -66,14 +67,20 @@ if len(sys.argv) > 4:
 	targetfilename = sys.argv[4];
 	target2, dims = get_place(targetfilename)
 else:
-	target2, dims = get_target("United States")
+	target2, dims = get_target(whereami.meta_location)
 
 
 best_partition = {}
 with open(infilename, 'r') as infile:
 	for line in infile:
 		best_partition = json.loads(line);
-
+		if "data" in best_partition:
+			tmp = {}
+			for k in best_partition["data"]: tmp[k] = best_partition["data"][k];
+			for k in best_partition["extrap"]: tmp[k] = best_partition["extrap"][k];
+			best_partition = tmp;
+			
+			
 vmax = int(len(set(best_partition.values())))
 vmin = 0;
 
@@ -104,9 +111,9 @@ else:
 for i in range(vmax):
 	
 	if len(sys.argv) <= 4:
-		draw_map({place:0 for place in com_boxes[i]}, outfilebase + str(i) + ".png", sys.argv[3]);
+		draw_map({place:0 for place in com_boxes[i]}, outfilebase + str(i) , sys.argv[3]);
 	else:
-		draw_map({place:0 for place in com_boxes[i]}, outfilebase + str(i) + ".png", sys.argv[3], target_poly=sys.argv[4]);
+		draw_map({place:0 for place in com_boxes[i]}, outfilebase + str(i) , sys.argv[3], target_poly=sys.argv[4]);
 
 
 	poly = cascaded_union( com_polys[i] );

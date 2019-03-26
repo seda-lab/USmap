@@ -24,6 +24,7 @@ import matplotlib.cm as cm
 import matplotlib as mpl
 from matplotlib.patches import Polygon as pgn
 from matplotlib.collections import PatchCollection
+import whereami
 
 from country_lookup import *
 country = country_lookup("country.db");
@@ -71,13 +72,13 @@ def get_place(filename):
 
 	return target, [xmin, ymin, xmax, ymax]
 			
-def get_target(place="United Kingdom"):
+def get_target(place=whereami.meta_location):
 	
 	if place == "United States":
 		target = box(-125, 24.5, -67, 49.5);
 		target2 = cascaded_union( country.lookup("United States") );
 		target2 = target.intersection( target2 );
-	else:
+	elif place == "United Kingdom":
 		target = box(-5.8, 49.9, 1.8, 55.9 );
 		fgs.load_all()
 		regions = {}

@@ -2,7 +2,7 @@
 import sys
 import ast
 from setup_target import *
-	
+import whereami	
 
 tweet_file = sys.argv[1]
 outfilename = sys.argv[2];
@@ -18,7 +18,7 @@ if len(sys.argv) > 3:
 	targetfilename = sys.argv[3];
 	target2, dims = get_place(targetfilename)
 else:
-	target2, dims = get_target("United States")
+	target2, dims = get_target(whereami.meta_location)
 
 
 with open(tweet_file,'r') as datafile:

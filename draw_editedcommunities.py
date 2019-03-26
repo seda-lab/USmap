@@ -79,14 +79,19 @@ def draw_map(partition, output, poly_type, target_poly=None):
 	
 		
 	best_partition = {}
+	partition_alpha = { "data":1.0, "extrap":0.75 }
+	partition_edge = { "data":"none", "extrap":'k' }
+	partition_z = { "data":0, "extrap":5 }
 	if isinstance(infilename, str):
 		with open(infilename, 'r') as infile:
 			for line in infile:
 				best_partition = json.loads(line);
+				#total["data"] = best_partition; 
+				#total["extrap"] = fill_partition;
 	else:
 		best_partition = infilename
 		
-	vmax = float(len(set(best_partition.values())))
+	vmax = float(len(set(best_partition["data"].values())))
 	vmin = 0;
 
 	
@@ -121,32 +126,25 @@ def draw_map(partition, output, poly_type, target_poly=None):
 
 			xmin, ymin, xmax, ymax = box_to_coords(mp)
 
-			if str(box_id) in best_partition:
-				pn = best_partition[ str(box_id) ];
-				if pn < len(cols):
-					col = cols[ pn ];
-				else:
-					col = get_random_color();
+			for k in ["data","extrap"]:
+				if str(box_id) in best_partition[k]:
+					pn = best_partition[k][ str(box_id) ];
+					if pn < len(cols):
+						col = cols[ pn ];
+					else:
+						col = get_random_color();
 
-				##draw costal edges
-				if target2.contains(mp):
-					patch = mpl.patches.Rectangle( (xmin, ymin) , (xmax-xmin), (ymax-ymin), edgecolor='none', facecolor=col, alpha=1, zorder=0  );
-					#patch = mpl.patches.Rectangle( (xmin, ymin) , (xmax-xmin), (ymax-ymin), edgecolor='k', facecolor=col, alpha=1, zorder=0  );
-					ax.add_patch(patch)
-				else:
-					poly = target2.intersection(mp)
-					polys = poly_to_coords(poly)
-					for p in polys:
-						
-						patch = pgn(p[0], edgecolor='none', facecolor=col, alpha=1, zorder=2  );
-						#patch = pgn(p[0], edgecolor='k', facecolor=col, alpha=1, zorder=2  );
+					##draw costal edges
+					if target2.contains(mp):
+						patch = mpl.patches.Rectangle( (xmin, ymin) , (xmax-xmin), (ymax-ymin), edgecolor=partition_edge[k], facecolor=col, alpha=partition_alpha[k], zorder=0+partition_z[k]  );
 						ax.add_patch(patch)
-						
-					
-					#pols = poly_to_coords(poly)
-					#for p in pols:
-					#	patch = pgn(p, edgecolor='none', facecolor=col, alpha=1, zorder=0  );
-					#	ax.add_patch(patch)
+					else:
+						poly = target2.intersection(mp)
+						polys = poly_to_coords(poly)
+						for p in polys:
+							patch = pgn(p[0], edgecolor=partition_edge[k], facecolor=col, alpha=partition_alpha[k], zorder=2+partition_z[k]  );
+							ax.add_patch(patch)
+
 	else:
 		for place in best_partition:
 		

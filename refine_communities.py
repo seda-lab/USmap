@@ -44,6 +44,7 @@ import community
 import itertools
 from operator import itemgetter
 from networkx.algorithms import community as cm
+import whereami
 
 def heaviest(G):
 	u, v, w = max(G.edges(data='weight'), key=itemgetter(2))
@@ -71,7 +72,7 @@ if len(sys.argv) > 5:
 	targetfilename = sys.argv[5];
 	target2, dims = get_place(targetfilename)
 else:
-	target2, dims = get_target("United States")		
+	target2, dims = get_target(whereami.meta_location)		
 
 		
 connections = {}
