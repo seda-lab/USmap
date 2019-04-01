@@ -39,9 +39,10 @@ from matplotlib.collections import PatchCollection
 
 
 
-
+import whereami
 from setup_target import *
 from figure_helper import *
+from county_lookup import *
 
 import networkx as nx
 import community
@@ -53,23 +54,50 @@ def heaviest(G):
 	u, v, w = max(G.edges(data='weight'), key=itemgetter(2))
 	return (u, v)
 
-if len(sys.argv) < 8:
-	print( "usage: python3 draw_network.py connections_file partition_file size output_file min_self min_connection max_node" )
+if len(sys.argv) < 9:
+	print( "usage: python3 draw_network.py connections_file partition_file output_file size target_poly min_self min_connection max_node node_factor" )
+	print( "size = X or dbfile. If X is an integer uses and X x X grid, otherwise uses polygons in dbfilename." )
+	print( "target_poly = file containing outline polygon. To use default (e.g. continental US) set to none, otherwise should be map_levelX_commY.txt" )
 	print( "min_self = minimum number of self mentions for a grid cell to be shown. Try 0" )
 	print( "min_connection = minimum number of mentions for an edge to shown. Try 100" )
 	print( "max_node = max_size of a node. Try 400" )
+	print( "node_factor = Scaling factor for node sizes. Try 0.01" )
 	sys.exit(1);
 	
 	 
 G=nx.Graph()
-	
 confilename = sys.argv[1];
 partfilename = sys.argv[2];
 outfilename = sys.argv[3];
-size = int(sys.argv[4])
-min_self = int(sys.argv[5])
-min_connection = int(sys.argv[6])
-max_node = int(sys.argv[7])
+size = sys.argv[4]
+target_poly = sys.argv[5]
+min_self = 0;
+min_connection = 100;
+max_node = 400;
+min_self = int(sys.argv[6])
+min_connection = int(sys.argv[7])
+max_node = int(sys.argv[8])
+node_factor = float(sys.argv[9])
+
+
+dbfilename = "";
+try:
+	size = int(size);	
+	#print("interpreting", poly_type, "as gridsize");
+except:
+	dbfilename = size;
+	#print("interpreting", poly_type, "as polygon database");
+	county = county_lookup(dbfilename);
+
+
+target, dims = get_target(whereami.meta_location)
+
+if target_poly != "none":
+	targetfilename = target_poly;
+	target2, dims = get_place(targetfilename)
+else:
+	target2, dims = get_target(whereami.meta_location)
+		
 
 connections = {}
 with open(confilename, 'r') as infile:
@@ -86,8 +114,7 @@ vmin = 0;
 			
 #regions, target2, dims = get_regions()
 #com_lab = uk_label_community(partition, dims, target2, size)
-target = box(-125, 24.5, -67, 49.5);
-target2, dims = get_target()
+#target, dims = get_target(whereami.meta_location)
 
 ################
 ##set up graph##
@@ -118,7 +145,6 @@ pos = nx.circular_layout(G) #just to get a filled data structure
 
 print( "mean degree " + str(1.0*sum([ d for n,d in G.degree ])/len(G.nodes)) )
 print( "mean weighted degree " + str(1.0*sum([ d for n,d in G.degree(weight="weight") ])/len(G.nodes)) )
-
 print( str(len(G.edges)) +  " edges " + str(len(G.nodes)) +  " nodes\n")
 print( "density " + str(len(G.edges)/( 0.5*(len(G.nodes)-1)*len(G.nodes))) + "\n")
 
@@ -136,27 +162,30 @@ node_size = [];
 node_list = [];
 node_color = [];
 for n in G.nodes:	
-	node_list.append(n)
-	if n in connections:
-		if n in connections[n]:
-			node_size.append(  min( max_node, 0.01*(connections[n][n]) ) );
+	if str(n) in partition: 	
+		node_list.append(n)
+		if n in connections:
+			if n in connections[n]:
+				node_size.append(  min( max_node, node_factor*(connections[n][n]) ) );
+			else: #no self edge
+				node_size.append(0);
 		else: #no self edge
 			node_size.append(0);
-	else: #no self edge
-		node_size.append(0);
-		
-	node_color.append( cols[ partition[ str(n) ] % len(cols) ]  );
+	
+		node_color.append( cols[ partition[ str(n) ] % len(cols) ]  );
+
 
 
 fig = plt.figure(figsize=(12, 12))
 ax = fig.add_subplot(111)
-setup_figure(ax, dims, target2, zorder = 1)
+setup_figure(ax, dims, target, zorder = 1)
 plt.axis("off")	
 
 for box_id, box_number, mp in generate_land(dims, target2, size, contains=False):
 	if str(box_id) in G.nodes:
 		xmin, ymin, xmax, ymax = box_to_coords(mp)
 		pos[str(box_id)] = np.array([ 0.5*(xmin+xmax), 0.5*(ymin+ymax)])
+
 
 for box_id, box_number, mp in generate_land(dims, target2, size, contains=False):
 
@@ -169,18 +198,19 @@ for box_id, box_number, mp in generate_land(dims, target2, size, contains=False)
 			patch = mpl.patches.Rectangle( (xmin, ymin) , (xmax-xmin), (ymax-ymin), edgecolor='k', linestyle='dashed', facecolor='none', alpha=0.5, zorder=0  );
 			ax.add_patch(patch)
 		else:
-			poly = target2.intersection(mp)
-			pols = poly_to_coords(poly)
-			for p in pols:
-				patch = pgn(p, edgecolor='k', linestyle='dashed', facecolor='none', alpha=0.5, zorder=-1000  );
+			poly = target.intersection(mp)
+			polys = poly_to_coords(poly)
+			for p in polys:
+				patch = pgn(p[0], edgecolor='k', linestyle='dashed', facecolor='none', alpha=0.5, zorder=-1000  );
 				ax.add_patch(patch)
-		
+
+	
 #nx.draw_networkx_edges(G, pos, edge_cmap=emap, edge_vmin=min_edge,edge_vmax=max_edge, width=0.01)
 nx.draw_networkx_edges(G, pos, width=0.1, alpha=1)
 nx.draw_networkx_nodes(G, pos, nodelist=node_list, node_size=node_size, node_color=node_color)
 
-#plt.savefig(outfilename);
-plt.show();
+plt.savefig(outfilename);
+#plt.show();
 plt.close();	
 
 	
