@@ -116,6 +116,7 @@ if dbfilename == "":
 	print("Adding empty space")
 
 	fill_boxes = {}
+	swapped_boxes = {}
 	for box_id, box_number, mp in generate_land(dims, target2, size, contains=False):
 		if str(box_id) not in best_partition:
 			nbr_com = {}
@@ -196,6 +197,7 @@ if dbfilename == "":
 					old_com = best_partition[ box_id ];
 					best_partition[box_id] = max(nbr_com, key=nbr_com.get);	
 					if old_com != best_partition[box_id]:
+						swapped_boxes[ box_id ] = best_partition[box_id];
 						change = True;
 						
 				if box_id in fill_boxes: 
@@ -205,8 +207,11 @@ if dbfilename == "":
 						change = True;
 				
 
+for b in swapped_boxes:
+	del best_partition[b];
+	
 with open(outfilename, 'w') as ofile:
-	total = { "data":best_partition, "extrap":fill_boxes };
+	total = { "data":best_partition, "extrap":fill_boxes, "swap":swapped_boxes };
 	jsoned = json.dumps(total);
 	ofile.write( jsoned )	
 	

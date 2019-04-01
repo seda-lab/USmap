@@ -79,9 +79,9 @@ def draw_map(partition, output, poly_type, target_poly=None):
 	
 		
 	best_partition = {}
-	partition_alpha = { "data":1.0, "extrap":0.75 }
-	partition_edge = { "data":"none", "extrap":'k' }
-	partition_z = { "data":0, "extrap":5 }
+	partition_alpha = { "data":1.0, "extrap":0.75, "swap":0.75}
+	partition_edge = { "data":"none", "extrap":'k', "swap":'k' }
+	partition_z = { "data":0, "extrap":5, "swap":5 }
 	if isinstance(infilename, str):
 		with open(infilename, 'r') as infile:
 			for line in infile:
@@ -126,7 +126,7 @@ def draw_map(partition, output, poly_type, target_poly=None):
 
 			xmin, ymin, xmax, ymax = box_to_coords(mp)
 
-			for k in ["data","extrap"]:
+			for k in ["data","extrap","swap"]:
 				if str(box_id) in best_partition[k]:
 					pn = best_partition[k][ str(box_id) ];
 					if pn < len(cols):

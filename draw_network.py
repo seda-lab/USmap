@@ -123,14 +123,14 @@ vmin = 0;
 for i in connections: 
 
 	##eliminate nodes with no self connections (usually sparsely populated)
-	#if (i not in connections[i]) or (connections[i][i] <= min_self): continue;
+	if (i not in connections[i]) or (connections[i][i] <= min_self): continue;
 
 	for j in connections[i]:
 		if j != i:
 			if not G.has_edge(i,j): #symmetric
 
 				##don't join to eliminated nodes
-				#if (j not in connections) or (j not in connections[j][j]) or (connections[j][j] <= min_self): continue;
+				if (j not in connections) or (j not in connections[j]) or (connections[j][j] <= min_self): continue;
 				ew = connections[i][j];
 				if (j in connections) and (i in connections[j]):
 					ew += connections[j][i]
@@ -139,14 +139,16 @@ for i in connections:
 				G.add_edge( i, j, weight = ew )
 
 
-#solitary=[ n for n,d in G.degree if d==0 ] #should be 0
-#G.remove_nodes_from(solitary)
-pos = nx.circular_layout(G) #just to get a filled data structure
+solitary=[ n for n,d in G.degree if d==0 ] #should be 0
+G.remove_nodes_from(solitary)
+#print(solitary)
+#pos = nx.circular_layout(G) #just to get a filled data structure
+print(len(G.nodes), "nodes in G");
 
 print( "mean degree " + str(1.0*sum([ d for n,d in G.degree ])/len(G.nodes)) )
 print( "mean weighted degree " + str(1.0*sum([ d for n,d in G.degree(weight="weight") ])/len(G.nodes)) )
-print( str(len(G.edges)) +  " edges " + str(len(G.nodes)) +  " nodes\n")
-print( "density " + str(len(G.edges)/( 0.5*(len(G.nodes)-1)*len(G.nodes))) + "\n")
+print( str(len(G.edges)) +  " edges " + str(len(G.nodes)) +  " nodes")
+print( "density " + str(len(G.edges)/( 0.5*(len(G.nodes)-1)*len(G.nodes))))
 
 
 emap = matplotlib.cm.binary
@@ -158,35 +160,46 @@ min_edge = sedges[0];
 cols = [ 'r', 'g', 'b', 'yellow', 'm', 'c', 'lightpink', 'saddlebrown', 'orange', 'olive', 'moccasin', 'chartreuse', 'violet', 'chocolate', 'teal', 'grey' ]
 
 
-node_size = [];
-node_list = [];
-node_color = [];
-for n in G.nodes:	
-	if str(n) in partition: 	
-		node_list.append(n)
-		if n in connections:
-			if n in connections[n]:
-				node_size.append(  min( max_node, node_factor*(connections[n][n]) ) );
-			else: #no self edge
-				node_size.append(0);
-		else: #no self edge
-			node_size.append(0);
-	
-		node_color.append( cols[ partition[ str(n) ] % len(cols) ]  );
-
-
-
 fig = plt.figure(figsize=(12, 12))
 ax = fig.add_subplot(111)
 setup_figure(ax, dims, target, zorder = 1)
 plt.axis("off")	
 
+node_size = [];
+node_list = [];
+edge_list = [];
+node_color = [];
+pos = {}
 for box_id, box_number, mp in generate_land(dims, target2, size, contains=False):
-	if str(box_id) in G.nodes:
+
+	if str(box_id) in partition and str(box_id) in G.nodes:
+		
 		xmin, ymin, xmax, ymax = box_to_coords(mp)
-		pos[str(box_id)] = np.array([ 0.5*(xmin+xmax), 0.5*(ymin+ymax)])
+		if target2.intersects(mp):
+			pos[str(box_id)] = np.array([ 0.5*(xmin+xmax), 0.5*(ymin+ymax)])
 
 
+			n = str(box_id);
+			node_list.append(n)
+			if n in connections:
+				if n in connections[n]:
+					node_size.append( min( max_node, node_factor*(connections[n][n]) ) );
+				else: #no self edge
+					node_size.append(0);
+			else: #no self edge
+				node_size.append(0);
+
+			node_color.append( cols[ partition[ str(n) ] % len(cols) ]  );
+
+for n in node_list:
+	for j in G[n]:
+		if j in node_list:
+			edge_list.append( (n, j) )
+
+print("include", len(node_list) )	
+		
+"""		
+cb = 0;
 for box_id, box_number, mp in generate_land(dims, target2, size, contains=False):
 
 	xmin, ymin, xmax, ymax = box_to_coords(mp)
@@ -197,16 +210,22 @@ for box_id, box_number, mp in generate_land(dims, target2, size, contains=False)
 		if target2.contains(mp):
 			patch = mpl.patches.Rectangle( (xmin, ymin) , (xmax-xmin), (ymax-ymin), edgecolor='k', linestyle='dashed', facecolor='none', alpha=0.5, zorder=0  );
 			ax.add_patch(patch)
+			cb += 1
 		else:
-			poly = target.intersection(mp)
+			poly = target2.intersection(mp)
 			polys = poly_to_coords(poly)
 			for p in polys:
-				patch = pgn(p[0], edgecolor='k', linestyle='dashed', facecolor='none', alpha=0.5, zorder=-1000  );
+				patch = pgn(p[0], edgecolor='k', linestyle='dashed', facecolor='none', alpha=0.5, zorder=0  );
 				ax.add_patch(patch)
+				cb += 1
 
-	
+print(cb, "boxes")
+print(len(G.nodes), "nodes");
+print(len(node_list), "unodes");
+"""
+
 #nx.draw_networkx_edges(G, pos, edge_cmap=emap, edge_vmin=min_edge,edge_vmax=max_edge, width=0.01)
-nx.draw_networkx_edges(G, pos, width=0.1, alpha=1)
+nx.draw_networkx_edges(G, pos, width=0.1, alpha=1, edgelist=edge_list)
 nx.draw_networkx_nodes(G, pos, nodelist=node_list, node_size=node_size, node_color=node_color)
 
 plt.savefig(outfilename);
