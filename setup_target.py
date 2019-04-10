@@ -32,6 +32,9 @@ country = country_lookup("country.db");
 from county_lookup import *
 fgs = county_lookup("fgs.db");
 
+from gadm_lookup import *
+gadm = gadm_lookup(whereami.gadm_location + "gadm.db");
+
 def draw_place(target):
 	
 	fig = plt.figure()
@@ -87,7 +90,19 @@ def get_target(place=whereami.meta_location):
 			regions[p] = cascaded_union( fgs.county_dict[p] );
 			target2.append(regions[p].buffer(0.0001) );
 		target2 = cascaded_union( target2 );
-
+	elif place == "United States+":
+		target = box(-125, 24.5, -67, 49.5);
+		target2 = cascaded_union( country.lookup("United States") );
+		target2 = target.intersection( target2 );
+	
+	elif place == "London":
+		target = box(-0.52, 51.2, 0.34, 51.7)
+		boroughs = ["London","Westminster","Kensington and Chelsea","Hammersmith and Fulham","Wandsworth","Lambeth","Southwark","Tower Hamlets","Hackney","Islington","Camden","Brent","Ealing","Hounslow","Richmond upon Thames","Kingston upon Thames","Merton","Sutton","Croydon","Bromley","Lewisham","Greenwich","Bexley","Havering","Barking and Dagenham","Redbridge","Newham","Waltham Forest","Haringey","Enfield","Barnet","Harrow","Hillingdon"]
+		target2 = []
+		for b in boroughs:
+			target2.append( target.intersection( MultiPolygon( gadm.lookup(b) ).buffer(0.0001) ) );
+		target2 = cascaded_union( target2 );
+			
 	xmin = target.bounds[0]; xmax = target.bounds[2];
 	ymin = target.bounds[1]; ymax = target.bounds[3];
 

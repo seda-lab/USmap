@@ -35,7 +35,13 @@ with open(tweet_file,'r') as datafile:
 			name = int(name["$numberLong"]);
 
 	
-		mp = box(words[2][0][0], words[2][0][1], words[2][2][0], words[2][2][1]);
+		
+		##skip big boxes
+		if (words[2][2][0] - words[2][0][0]) < max_place and (words[2][2][1] - words[2][0][1]) < max_place:
+			skipped += 1;
+			continue;
+
+		mp = box(words[2][0][0], words[2][0][1], words[2][2][0], words[2][2][1]);			
 		if not target2.intersects(mp):
 			skipped += 1;
 			continue;

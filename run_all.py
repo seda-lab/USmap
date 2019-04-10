@@ -83,7 +83,6 @@ if not os.path.isfile("communities" + filetag + ".png"):
 else:
 	print("Using existing communities" + filetag + ".png");
 
-
 ##run refine_communities.py	
 if not os.path.isfile("refinedcommunities" + filetag + ".out"): 
 	print( "Refining communities in the box network..." )
