@@ -74,3 +74,8 @@ class country_lookup:
 		
 	def destroy(self):
 		self.conn.close()
+
+if __name__ == "__main__":
+	
+	country = country_lookup("country.db");
+	country.lookup("France")
