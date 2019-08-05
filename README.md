@@ -1,6 +1,10 @@
 # USmap
-Mapping the regions of the US with tweets
-
+Mapping the regions of the US with tweets. To setup you first have to compile the community detection code
+```
+cd gen-louvain
+make
+```
+You run the code using
 ```
 python3 twitter_map.py settings.ini
 ```
