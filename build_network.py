@@ -2,7 +2,7 @@ import sys
 import ast
 import json
 
-def build_network(tweet_file, userfilename, confilename, senfilename, size=30, county=None):
+def build_network(tweet_file, userfilename, confilename, senfilename, graphfilename, size=30, county=None, stats_file=None):
 
 	##user -> box map
 	user_boxes = {};
@@ -103,14 +103,18 @@ def build_network(tweet_file, userfilename, confilename, senfilename, size=30, c
 	with open(senfilename, 'w') as outfile:	
 		jsoned = json.dumps(sentiment);
 		outfile.write( jsoned )	
-		
-	#with open(statsfilename, 'w') as ofile:
-	print( str(num_tweets) + " tweets" );
-	print( str(self_mention) + " self mentions" );
-	print( str(out_mention) + " out of bounds mentions" );
-	print( str(used_mention) + " used mentions" );
-	print( str(skipped) + " skipped tweets" );
-	print( str(used_tweets) + " used tweets" );
-	print( str(len(mentioners)) + " users mentioning someone else" );
-	print( str(len(mentionees)) + " users mentioned by someone else" );
+	
+	with open(graphfilename, 'w') as outfile:
+		for u, v, w in G.edges.data('weight'):
+			outfile.write("{} {} {}\n".format(u,v,w) )
+				
+	print("###build_network.py",file=stats_file)		
+	print( str(num_tweets) + " tweets",file=stats_file );
+	print( str(self_mention) + " self mentions",file=stats_file );
+	print( str(out_mention) + " out of bounds mentions",file=stats_file );
+	print( str(used_mention) + " used mentions",file=stats_file );
+	print( str(skipped) + " skipped tweets",file=stats_file );
+	print( str(used_tweets) + " used tweets",file=stats_file );
+	print( str(len(mentioners)) + " users mentioning someone else",file=stats_file );
+	print( str(len(mentionees)) + " users mentioned by someone else",file=stats_file );
 

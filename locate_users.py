@@ -12,7 +12,7 @@ from shapely.ops import cascaded_union
 from setup_target import *
 import numpy as np
 
-def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30, county=None):
+def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30, county=None, stats_file=None):
 
 	if not county:
 		xmin = dims[0]; ymin = dims[1]; xmax = dims[2]; ymax = dims[3];
@@ -161,21 +161,23 @@ def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30,
 				print(num_users);			
 	outfile.close();
 
-
-	print( str(num_users) + " users" );
-	print( str(num_usersi) + " users included" );
-	print( str(num_points) + " point locations" );
-	print( str(num_boxes) + " box locations" );
-	print( str(num_isec) + " locations not contained in target" );
+	print("###locate_users.py",file=stats_file)		
+	print( str(num_users) + " users",file=stats_file );
+	print( str(num_usersi) + " users included",file=stats_file );
+	print( str(num_points) + " point locations",file=stats_file );
+	print( str(num_boxes) + " box locations",file=stats_file );
+	print( str(num_isec) + " locations not contained in target",file=stats_file );
 		
 
 	index_to_place = {}	
 	if not county:
-
 		for box_id, box_number, mp in generate_land(dims, target2, size, contains=False):
-			index_to_place[ str(box_id) ] = ((mp.bounds[0],mp.bounds[1]),(mp.bounds[2],mp.bounds[3]));		
-
-		with open(indexfilename, 'w') as ofile:
-			jsoned = json.dumps(index_to_place);
-			ofile.write( jsoned )	
+			index_to_place[ str(box_id) ] = ((mp.bounds[0],mp.bounds[1]),(mp.bounds[2],mp.bounds[3])); ##make it a string for later compatability with county
+	else:
+		print("not implemented");
+		sys.exit(1);
+		
+	with open(indexfilename, 'w') as ofile:
+		jsoned = json.dumps(index_to_place);
+		ofile.write( jsoned )	
 	

@@ -1,6 +1,7 @@
 #draw the map!
 import sys
 import json
+from collections import Counter;
 
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
@@ -59,7 +60,18 @@ def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=N
 	##rectangles##
 	##############
 	cols = [ 'r', 'g', 'b', 'yellow', 'm', 'c', 'lightpink', 'saddlebrown', 'orange', 'olive', 'moccasin', 'chartreuse', 'violet', 'chocolate', 'teal', 'grey' ]
-	
+	partition_sizes = Counter();
+	for node in best_partition["data"]:
+		partition_sizes[ best_partition["data"][node] ] += 1;
+	colour_map = {}
+	for i,comm in enumerate( partition_sizes.most_common() ):
+		if i < len(cols):
+			colour_map[comm[0]] = cols[i];
+		else:
+			colour_map[comm[0]] = get_random_color();
+			
+	print(partition_sizes.most_common())
+	print(colour_map)
 
 	if not county:
 		
@@ -70,10 +82,7 @@ def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=N
 	
 				if str(box_id) in best_partition[k]:
 					pn = best_partition[k][ str(box_id) ];
-					if pn < len(cols):
-						col = cols[ pn ];
-					else:
-						col = get_random_color();
+					col = colour_map[pn]
 
 					##draw costal edges
 					if target2.contains(mp):

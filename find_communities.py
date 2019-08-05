@@ -4,8 +4,10 @@ import copy
 import importlib
 import gc
 import networkx as nx
-import community
-from networkx.algorithms import community as cm
+#import community
+#from networkx.algorithms import community as cm
+from run_louvain import run_louvain_standard, run_louvain_null
+
 import numpy as np
 
 from setup_target import *
@@ -45,10 +47,11 @@ def make_graph(confilename, min_self=0, min_connection=0):
 	
 	return G;
 	
-def find_communities(confilename, outfilename, palg="louvain", res=1):
+def find_communities(confilename, graphfilename, outfilename, nullfilename = None, labelfilename = None, stats_file=None):
 	
 	G = make_graph(confilename)
 
+	"""
 	max_mod = -np.inf
 	best_partition = {}
 	Nr = 1;
@@ -83,17 +86,24 @@ def find_communities(confilename, outfilename, palg="louvain", res=1):
 			best_partition = copy.deepcopy(partition);
 			
 		print(100-i, mod, int(len(set(partition.values()))), max_mod, int(len(set(best_partition.values()))))
-		
+	"""
+	if nullfilename is None:
+		max_mod, best_partition = run_louvain_standard(graphfilename, num_its=100)
+	else:
+		max_mod, best_partition = run_louvain_null(graphfilename, nullfilename, labelfilename, num_its=100)
+
+
 	vmax = float(len(set(best_partition.values())))
 	vmin = 0;
 
-	print( str(vmax) + "communities" );
-	print( str( max_mod ) +" best modularity" );
-	print( str(len(G.edges)) +  " edges")
-	print( str(len(G.nodes)) +  " nodes")
-	print( "density " + str(len(G.edges)/( 0.5*(len(G.nodes)-1)*len(G.nodes))) )
-	print( "mean degree " + str(1.0*sum([ d for n,d in G.degree ])/len(G.nodes)) )
-	print( "mean weighted degree " + str(1.0*sum([ d for n,d in G.degree(weight="weight") ])/len(G.nodes)) )
+	print("###find_communities.py",file=stats_file)		
+	print( str(vmax) + " communities",file=stats_file );
+	print( str( max_mod ) +" best modularity",file=stats_file );
+	print( str(len(G.edges)) +  " edges",file=stats_file)
+	print( str(len(G.nodes)) +  " nodes",file=stats_file)
+	print( "density " + str(len(G.edges)/( 0.5*(len(G.nodes)-1)*len(G.nodes))),file=stats_file )
+	print( "mean degree " + str(1.0*sum([ d for n,d in G.degree ])/len(G.nodes)),file=stats_file )
+	print( "mean weighted degree " + str(1.0*sum([ d for n,d in G.degree(weight="weight") ])/len(G.nodes)),file=stats_file )
 
 	with open(outfilename, 'w') as ofile:
 		jsoned = json.dumps(best_partition);
@@ -318,3 +328,7 @@ def edit_communities(confilename, partfilename, outfilename, nbrs, dims, target2
 		jsoned = json.dumps(iconnections);
 		ofile.write( jsoned )		
 """	
+
+if __name__ == "__main__":
+	find_communities(sys.argv[1], sys.argv[2], sys.argv[3])
+		
