@@ -219,7 +219,9 @@ if config.getboolean("null", "runprop"):
 	if not config.getboolean("null", "default_filenames"):
 		csvfilename = config.get("null", "csv_file")
 		confilename = config.get("network", "con_file")
-		outfilename = config.get("null", "null_file")	
+		nullfilename = config.get("null", "null_file")	
+		labelfilename = config.get("null", "label_file")	
+		graphfilename = config.get("null", "graph_file")	
 		
 	if config.getboolean("null", "regen") or (not os.path.isfile(nullfilename)):
 		construct_null(csvfilename, confilename, nullfilename, labelfilename, graphfilename, base=5)		
@@ -236,6 +238,13 @@ if config.getboolean("null", "runprop"):
 	nullfilename = "null" + filetag + ".txt"
 	labelfilename = "labels" + filetag + ".json"
 	outfilename = "nullcommunities" + filetag + ".out"
+	if not config.getboolean("null", "default_filenames"):
+		infilename = config.get("network", "con_file")
+		graphfilename = config.get("null", "graph_file")	
+		nullfilename = config.get("null", "null_file")	
+		labelfilename = config.get("null", "label_file")	
+		outfilename = config.get("null", "communities_file")	
+		
 	if config.getboolean("findcom", "regen") or (not os.path.isfile(outfilename)):
 		find_communities(infilename, graphfilename, outfilename, nullfilename=nullfilename, labelfilename=labelfilename, stats_file=stats_file);
 	else:
@@ -247,12 +256,16 @@ if config.getboolean("null", "runprop"):
 	#########################
 	infilename = "nullcommunities" + filetag + ".out"
 	outfilename = "nullcommunities" + filetag + "." + img_type
+	if not config.getboolean("null", "default_filenames"):
+		infilename = config.get("network", "communities_file")
+		outfilename = config.get("null", "communities_plot_file")	
+		
 	if config.getboolean("drawcom", "regen") or (not os.path.isfile(outfilename)):
 		draw_map(infilename, outfilename, dims, target2, size=size, gadm=gadm, county=county, place=meta_location)
 	else:
 		print("Using existing", outfilename);
 	
-sys.exit(1);
+
 
 #########################
 # refine communities
