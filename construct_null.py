@@ -12,18 +12,23 @@ def myround(x, b=5):
     return b * round(x/b)
 
 
-def construct_null(csvfilename, confilename, nullfilename, labelfilename, graphfilename, base=5):
+def construct_null(csvfilename, confilename, nullfilename, labelfilename, graphfilename, fdistfilename, users=False, base=5):
 
 	##read the graph (using original labels)
 	G = make_graph(confilename)
     
     ##read the node info  (using original labels)
 	node_info = {}
+	if users:
+		nid = 1
+	else:
+		nid = 2;
+		
 	with open(csvfilename, 'r') as csvfile:
 		spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
 		for row in spamreader:
 			if row[0] in G.nodes():
-				node_info[ row[0] ] = {"N":float(row[1]), "coord":np.array([float(row[2]), float(row[3])]) }		
+				node_info[ row[0] ] = {"N":float(row[nid]), "coord":np.array([float(row[3]), float(row[4])]) }		
 
 	##relabel the nodes
 	ordered_nodes = sorted([int(k) for k in node_info])
@@ -36,8 +41,7 @@ def construct_null(csvfilename, confilename, nullfilename, labelfilename, graphf
 			for j,v in enumerate(ordered_nodes[i:]):
 				if G.has_edge(str(u), str(v)):
 					outfile.write("{} {} {}\n".format(labels[u], labels[v], G[str(u)][str(v)]["weight"]) )
-				#else:
-				#	outfile.write("{} {} {}\n".format(labels[u], labels[v], 0) )
+
 
 	##output the label map
 	with open(labelfilename, 'w') as outfile:	
@@ -69,7 +73,12 @@ def construct_null(csvfilename, confilename, nullfilename, labelfilename, graphf
 			norm[ d[ labels[i] ][ labels[j] ] ] += node_info[str(i)]["N"] * node_info[str(j)]["N"]
 	for key in f:
 		f[key] /= norm[key]
-	
+
+
+	with open(fdistfilename, 'w') as outfile:
+		for key in sorted(f):
+			outfile.write("{} {}\n".format( key, f[key] ));
+
 	with open(nullfilename, 'w') as outfile:
 		for i,u in enumerate(ordered_nodes):
 			for j,v in enumerate(ordered_nodes[i:]):

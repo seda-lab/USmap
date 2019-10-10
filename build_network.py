@@ -103,10 +103,6 @@ def build_network(tweet_file, userfilename, confilename, senfilename, graphfilen
 	with open(senfilename, 'w') as outfile:	
 		jsoned = json.dumps(sentiment);
 		outfile.write( jsoned )	
-	
-	with open(graphfilename, 'w') as outfile:
-		for u, v, w in G.edges.data('weight'):
-			outfile.write("{} {} {}\n".format(u,v,w) )
 				
 	print("###build_network.py",file=stats_file)		
 	print( str(num_tweets) + " tweets",file=stats_file );

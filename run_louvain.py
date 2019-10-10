@@ -57,15 +57,15 @@ def run_louvain_standard(filename, num_its=100):
 	
 def run_louvain_null(filename, nullfilename, labelfile, num_its=100):
 	execpath=os.getcwd() + "/gen-louvain/"
-
+	
 	convert_cmd1 = execpath  + "convert -i " + filename + " -o graph.bin -w graph.weights";
 	p = Popen( shlex.split(convert_cmd1), stdout=PIPE, stderr=PIPE)
 	stdout, stderr = p.communicate();
-
+	
 	convert_cmd2 = execpath  + "convert -i " + nullfilename + " -o null.bin -w null.weights";
 	p = Popen( shlex.split(convert_cmd2), stdout=PIPE, stderr=PIPE)
 	stdout, stderr = p.communicate();
-	
+
 
 	run_command = execpath  + "louvain graph.bin -l -1 -q 10 -w graph.weights -n null.bin -x null.weights";
 	best_mod = -1;
@@ -75,8 +75,9 @@ def run_louvain_null(filename, nullfilename, labelfile, num_its=100):
 		partition = open("tmp.tree", "w")
 		p = Popen( shlex.split(run_command), stdout=partition, stderr=PIPE)
 		stdout, stderr = p.communicate();
+
 		mod = float(stderr.decode("utf-8").strip().split("\n")[-1].split()[0]);
-		
+
 		if mod > best_mod:
 			best_mod = mod;
 			os.system('cp tmp.tree graph.tree');

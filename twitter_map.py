@@ -88,16 +88,16 @@ stats_filename = config.get("global", "stats_filename")
 if stats_filename == "": stats_filename = "stats.out";
 stats_file = open(stats_filename, 'w');
 img_type = config.get("global", "img_type")
-
+iodir = config.get("global", "iodir")
 
 #########################
 # Extract Tweets
 #########################
 infilename = config.get("extract", "input_file")
-outfilename = "extract.out"
+outfilename = iodir + "extract.out"
 if not config.getboolean("extract", "default_filenames"):
 	outfilename = config.get("extract", "output_file")
-
+	
 if config.getboolean("extract", "regen") or (not os.path.isfile(outfilename)):
 	extract_mentions(infilename, outfilename, target, stats_file)
 else:
@@ -108,7 +108,7 @@ else:
 # Extract Places
 #########################
 infilename = outfilename
-outfilename = "userloc" + filetag + ".out"
+outfilename = iodir + "userloc" + filetag + ".out"
 if not config.getboolean("split", "default_filenames"):
 	infilename = config.get("split", "input_file")
 	outfilename = config.get("split", "output_file")
@@ -123,8 +123,8 @@ else:
 # Put users in boxes
 #########################
 infilename = outfilename
-outfilename = "boxes" + filetag + ".out"
-indexfilename = "boxids" + filetag + ".json"
+outfilename = iodir + "boxes" + filetag + ".out"
+indexfilename = iodir + "boxids" + filetag + ".json"
 if not config.getboolean("locate", "default_filenames"):
 	infilename = config.get("locate", "input_file")
 	outfilename = config.get("locate", "output_file")
@@ -139,11 +139,11 @@ else:
 #########################
 # make the network
 #########################
-infilename = "extract.out"
-boxfilename = "boxes" + filetag + ".out"
-outfilename = "connections" + filetag + ".out"
-senfilename = "sentiment" + filetag + ".out"
-graphfilename = "graph" + filetag + ".txt"
+infilename = iodir + "extract.out"
+boxfilename = iodir + "boxes" + filetag + ".out"
+outfilename = iodir + "connections" + filetag + ".out"
+senfilename = iodir + "sentiment" + filetag + ".out"
+graphfilename = iodir + "graph" + filetag + ".txt"
 if not config.getboolean("network", "default_filenames"):
 	infilename = config.get("network", "input_file")
 	boxfilename = config.get("network", "box_file")
@@ -162,9 +162,9 @@ else:
 #########################
 # find communities
 #########################
-infilename = "connections" + filetag + ".out"
-graphfilename = "graph" + filetag + ".txt"
-outfilename = "communities" + filetag + ".out"
+infilename = iodir + "connections" + filetag + ".out"
+graphfilename = iodir + "graph" + filetag + ".txt"
+outfilename = iodir + "communities" + filetag + ".out"
 if not config.getboolean("findcom", "default_filenames"):
 	infilename = config.get("findcom", "input_file")
 	graphfilename = config.get("findcom", "graph_file")
@@ -176,11 +176,12 @@ else:
 	print("Using existing", outfilename);
 
 
+
 #########################
 # draw communities
 #########################
-infilename = "communities" + filetag + ".out"
-outfilename = "communities" + filetag + "." + img_type
+infilename = iodir + "communities" + filetag + ".out"
+outfilename = iodir + "communities" + filetag + "." + img_type
 if not config.getboolean("drawcom", "default_filenames"):
 	infilename = config.get("drawcom", "find_file")
 	outfilename = config.get("drawcom", "output_find_file")
@@ -192,52 +193,58 @@ else:
 
 
 if config.getboolean("null", "runprop"):
+	bindist = float(config.get("null", "bindist"));
+	ut = False;
+	uts = str(ut);
+	
 	#########################
 	# Generate nodeinfo
 	#########################
-	boxfilename = "boxes" + filetag + ".out"
-	indexfilename = "boxids" + filetag + ".json"
-	csvfilename = "nodeinfo" + filetag + ".csv"
+	boxfilename = iodir + "boxes" + filetag + ".out"
+	indexfilename = iodir + "boxids" + filetag + ".json"
+	confilename = iodir + "connections" + filetag + ".out"
+	csvfilename = iodir + "nodeinfo" + filetag + ".csv"
 	if not config.getboolean("null", "default_filenames"):
 		boxfilename = config.get("locate", "output_file")
 		indexfilename = config.get("locate", "index_file")
 		csvfilename = config.get("null", "csv_file")
 	
 	if config.getboolean("null", "regen") or (not os.path.isfile(csvfilename)):
-		generate_nodeinfo(boxfilename, indexfilename, csvfilename, size=size, county=county)
+		generate_nodeinfo(boxfilename, indexfilename, confilename, csvfilename, size=size, county=county)
 	else:
 		print("Using existing", csvfilename);
 
 	#########################
 	# Generate null
 	#########################
-	csvfilename = "nodeinfo" + filetag + ".csv"
-	confilename = "connections" + filetag + ".out"
-	nullfilename = "null" + filetag + ".txt"
-	labelfilename = "labels" + filetag + ".json"
-	graphfilename = "nullgraph" + filetag + ".txt" 
+	csvfilename = iodir + "nodeinfo" + filetag + ".csv"
+	confilename = iodir + "connections" + filetag + ".out"
+	nullfilename = iodir + "null" + "_" + str(bindist)+ "_" + uts + filetag + ".txt"
+	labelfilename = iodir + "labels" + "_" + str(bindist)+ "_" + uts + filetag + ".json"
+	graphfilename = iodir + "nullgraph" + "_" + str(bindist)+ "_" + uts + filetag + ".txt" 
+	fdistfilename = iodir + "fdist" + "_" + str(bindist)+ "_" + uts + filetag + ".txt" 
 	if not config.getboolean("null", "default_filenames"):
 		csvfilename = config.get("null", "csv_file")
 		confilename = config.get("network", "con_file")
 		nullfilename = config.get("null", "null_file")	
 		labelfilename = config.get("null", "label_file")	
 		graphfilename = config.get("null", "graph_file")	
+		fdistfilename = config.get("null", "fdist_file")	
 		
 	if config.getboolean("null", "regen") or (not os.path.isfile(nullfilename)):
-		construct_null(csvfilename, confilename, nullfilename, labelfilename, graphfilename, base=5)		
+		construct_null(csvfilename, confilename, nullfilename, labelfilename, graphfilename, fdistfilename, users=ut, base=bindist)		
 	else:
 		print("Using existing", nullfilename);
-	filetag=""
 	
 
 	#########################
 	# find communities
 	#########################
-	infilename = "connections" + filetag + ".out"
-	graphfilename = "nullgraph" + filetag + ".txt"
-	nullfilename = "null" + filetag + ".txt"
-	labelfilename = "labels" + filetag + ".json"
-	outfilename = "nullcommunities" + filetag + ".out"
+	infilename = iodir + "connections" + filetag + ".out"
+	graphfilename = iodir + "nullgraph" + filetag + "_" + str(bindist)+ "_" + uts + ".txt"
+	nullfilename = iodir + "null" + filetag + "_" + str(bindist)+ "_" + uts + ".txt"
+	labelfilename = iodir + "labels" + filetag + "_" + str(bindist)+ "_" + uts + ".json"
+	outfilename = iodir + "nullcommunities" + filetag + "_" + str(bindist)+ "_" + uts + ".out"
 	if not config.getboolean("null", "default_filenames"):
 		infilename = config.get("network", "con_file")
 		graphfilename = config.get("null", "graph_file")	
@@ -245,7 +252,7 @@ if config.getboolean("null", "runprop"):
 		labelfilename = config.get("null", "label_file")	
 		outfilename = config.get("null", "communities_file")	
 		
-	if config.getboolean("findcom", "regen") or (not os.path.isfile(outfilename)):
+	if config.getboolean("null", "regen") or (not os.path.isfile(outfilename)):
 		find_communities(infilename, graphfilename, outfilename, nullfilename=nullfilename, labelfilename=labelfilename, stats_file=stats_file);
 	else:
 		print("Using existing", outfilename);
@@ -254,18 +261,17 @@ if config.getboolean("null", "runprop"):
 	#########################
 	# draw communities
 	#########################
-	infilename = "nullcommunities" + filetag + ".out"
-	outfilename = "nullcommunities" + filetag + "." + img_type
+	infilename = iodir + "nullcommunities" + filetag + "_" + str(bindist)+ "_" + uts + ".out"
+	outfilename = iodir + "nullcommunities" + filetag + "_" + str(bindist)+ "_" + uts + "." + img_type
 	if not config.getboolean("null", "default_filenames"):
 		infilename = config.get("network", "communities_file")
 		outfilename = config.get("null", "communities_plot_file")	
 		
-	if config.getboolean("drawcom", "regen") or (not os.path.isfile(outfilename)):
+	if config.getboolean("null", "regen") or (not os.path.isfile(outfilename)):
 		draw_map(infilename, outfilename, dims, target2, size=size, gadm=gadm, county=county, place=meta_location)
 	else:
 		print("Using existing", outfilename);
 	
-
 
 #########################
 # refine communities

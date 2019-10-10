@@ -41,7 +41,6 @@ def read_partition(infilename, edited):
 def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=None, place='none', edited=False):
 
 	best_partition = read_partition(infilename, edited);
-	#print(best_partition)
 	vmax = float(len(set(best_partition["data"].values())))
 	vmin = 0;
 	partition_alpha = { "data":1.0, "extrap":0.75, "swap":0.75}
@@ -59,16 +58,20 @@ def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=N
 	##############
 	##rectangles##
 	##############
-	cols = [ 'r', 'g', 'b', 'yellow', 'm', 'c', 'lightpink', 'saddlebrown', 'orange', 'olive', 'moccasin', 'chartreuse', 'violet', 'chocolate', 'teal', 'grey' ]
+	cols = [ 'r', 'g', 'b', 'yellow', 'm', 'c', 'lightpink', 'saddlebrown', 'orange', 'grey', 'k'] 
+	#, 'olive', 'moccasin', 'chartreuse', 'violet', 'chocolate', 'teal',  ]
 	partition_sizes = Counter();
 	for node in best_partition["data"]:
 		partition_sizes[ best_partition["data"][node] ] += 1;
 	colour_map = {}
 	for i,comm in enumerate( partition_sizes.most_common() ):
-		if i < len(cols):
-			colour_map[comm[0]] = cols[i];
+		if comm[1] < 20:
+			colour_map[comm[0]] = 'k';
 		else:
-			colour_map[comm[0]] = get_random_color();
+			if i < len(cols):
+				colour_map[comm[0]] = cols[i];
+			else:
+				colour_map[comm[0]] = get_random_color(pastel_factor = 1);
 			
 	print(partition_sizes.most_common())
 	print(colour_map)

@@ -1,11 +1,14 @@
 import sys
 import json
 import copy
-import importlib
-import gc
+
 import networkx as nx
+import os
 #import community
 #from networkx.algorithms import community as cm
+#import importlib
+#import gc
+
 from run_louvain import run_louvain_standard, run_louvain_null
 
 import numpy as np
@@ -50,6 +53,13 @@ def make_graph(confilename, min_self=0, min_connection=0):
 def find_communities(confilename, graphfilename, outfilename, nullfilename = None, labelfilename = None, stats_file=None):
 	
 	G = make_graph(confilename)
+	if not os.path.isfile(graphfilename):
+		with open(graphfilename, 'w') as outfile:
+			for u in G:
+				for v in G[u]:
+					outfile.write("{} {} {}\n".format(u, v, G[u][v]["weight"]) )
+
+
 
 	"""
 	max_mod = -np.inf
