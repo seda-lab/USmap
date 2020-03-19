@@ -14,7 +14,34 @@ from matplotlib.patches import Polygon as pgn
 from gadm_lookup import *
 from country_lookup import *
 
+import shapely.ops as ops
+from shapely.geometry.polygon import Polygon
+from functools import partial
+import pyproj
 
+def flatten_poly_area( coords, ptype='aea' ):
+
+	poly = box(coords[0][0], coords[0][1], coords[1][0], coords[1][1])
+	#'aea': 'Albers Equal Area',
+	#'cea': 'Equal Area Cylindrical',
+	#'laea': 'Lambert Azimuthal Equal Area',
+	#'leac': 'Lambert Equal Area Conic',
+	#'tcea': 'Transverse Cylindrical Equal Area',
+	if poly.geom_type == "Polygon" or poly.geom_type == "MultiPolygon":
+		poly_flat = ops.transform(
+		partial(
+			pyproj.transform,
+			pyproj.Proj('EPSG:4326'),	#GPS ellipsoid
+			pyproj.Proj(
+				proj=ptype,					#equal area conical projection
+				lat_1=poly.bounds[1],
+				lat_2=poly.bounds[3]
+				)),
+		poly);
+		return poly_flat.area/1000000.0; #km2
+
+	return 0
+	
 def draw_place(target):
 	
 	fig = plt.figure()

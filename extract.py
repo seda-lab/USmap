@@ -1,4 +1,7 @@
-##extract only those tweets which are replies
+##extract only those tweets which are replies or mentions
+##text, tweet['place']['full_name'], co-ordinate, tweet['user']['screen_name'], tweet['user']['id'], pol, mentions
+##mentions = [ (user_id, user_name), ... ]
+								
 import sys
 import re
 import os
@@ -45,7 +48,7 @@ def get_polarity(text):
     return pol;
     
 
-def extract_mentions(infilename, outfilename, target):
+def extract_mentions(infilename, outfilename, target, stats_file=None):
 	    
 	output_file = open(outfilename, 'w');
 
@@ -115,9 +118,10 @@ def extract_mentions(infilename, outfilename, target):
 							duplicates += 1
 				
 	output_file.close();
-			
-	print( str(num_tweets) + " tweets" );
-	print( str(num_mentions) + " tweets that mention others" );
-	print( str(num_place) + " tweets with place tags" );
-	print( str(num_place_use) + " tweets with mentions originating in target" );
-	print( str(duplicates) + " duplicate tweets" );
+	
+	print("###extract.py",file=stats_file)		
+	print( str(num_tweets) + " tweets",file=stats_file );
+	print( str(num_mentions) + " tweets that mention others",file=stats_file );
+	print( str(num_place) + " tweets with place tags",file=stats_file );
+	print( str(num_place_use) + " tweets with mentions originating in target",file=stats_file );
+	print( str(duplicates) + " duplicate tweets",file=stats_file );

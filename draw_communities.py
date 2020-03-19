@@ -65,7 +65,7 @@ def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=N
 		partition_sizes[ best_partition["data"][node] ] += 1;
 	colour_map = {}
 	for i,comm in enumerate( partition_sizes.most_common() ):
-		if comm[1] < 20:
+		if False: #comm[1] < 20:
 			colour_map[comm[0]] = 'k';
 		else:
 			if i < len(cols):

@@ -4,7 +4,7 @@ import copy
 
 import networkx as nx
 import os
-#import community
+import community
 #from networkx.algorithms import community as cm
 #import importlib
 #import gc
@@ -15,7 +15,7 @@ import numpy as np
 
 from setup_target import *
 
-def make_graph(confilename, min_self=0, min_connection=0):
+def make_graph(confilename, min_self=0, min_connection=0, use_self=False):
 	
 	G=nx.Graph()
 
@@ -23,17 +23,19 @@ def make_graph(confilename, min_self=0, min_connection=0):
 	with open(confilename, 'r') as infile:
 		for line in infile:
 			connections = json.loads(line);
-			
+
+				
 	################
 	##set up graph##
 	################
+	totw = 0;
 	for i in connections: 
 
 		##eliminate nodes with no self connections (usually sparsely populated)
 		if (i not in connections[i]) or (connections[i][i] <= min_self): continue;
 
 		for j in connections[i]:
-			if j != i:
+			if j != i or use_self:
 				if not G.has_edge(i,j): #symmetric
 
 					##don't join to eliminated nodes
@@ -44,7 +46,8 @@ def make_graph(confilename, min_self=0, min_connection=0):
 					if ew <= min_connection: continue;	
 							
 					G.add_edge( i, j, weight = ew )
-	   
+
+	
 	solitary=[ n for n,d in G.degree if d==0 ] #should be 0
 	G.remove_nodes_from(solitary)
 	
@@ -169,9 +172,10 @@ def refine_communities(confilename, partfilename, outfilename, dims, target2, si
 	
 	change = True;
 	cit = 0;
-	while change:	
+	while change and (cit<20):	
 		cit += 1;
-		print("refine iteration", cit);	
+		print("refine iteration", cit, best_mod);
+	
 		change = False;		
 		for box_id in neighbours:
 			if box_id in best_partition:
@@ -192,15 +196,13 @@ def refine_communities(confilename, partfilename, outfilename, dims, target2, si
 					for new_com in sorted(nbr_com):
 						best_partition[box_id] = new_com;
 						mod = community.modularity(best_partition, G);
-						if mod >= best_mod:
+						if mod > best_mod:
 							best_mod = mod;
 							change = True;
-							print("new mod", best_mod);
 							break;
 						else:
 							best_partition[box_id] = old_com;
 
-		
 	with open(outfilename, 'w') as ofile:
 		jsoned = json.dumps(best_partition);
 		ofile.write( jsoned )	

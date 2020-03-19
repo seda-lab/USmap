@@ -67,6 +67,7 @@ try:
 except:
 	comm = -1;	
 
+iodir = config.get("global", "iodir")
 
 #############################
 ##target2 = detailed polygon;   dims = box corners;   target = Bounding box;
@@ -78,6 +79,7 @@ if level >= 0:
 	place = config.get("global", "map_filename")
 	if place == "":
 		place = "map_level" + str(level) + "_comm" + str(comm) + ".txt";
+	place = iodir + place;
 	target2, dims = get_place(place);
 	filetag = "_level" + str(level) + "_comm" + str(comm);
 else:
@@ -88,7 +90,6 @@ stats_filename = config.get("global", "stats_filename")
 if stats_filename == "": stats_filename = "stats.out";
 stats_file = open(stats_filename, 'w');
 img_type = config.get("global", "img_type")
-iodir = config.get("global", "iodir")
 
 #########################
 # Extract Tweets
@@ -102,6 +103,7 @@ if config.getboolean("extract", "regen") or (not os.path.isfile(outfilename)):
 	extract_mentions(infilename, outfilename, target, stats_file)
 else:
 	print("Using existing", outfilename);
+
 
 
 #########################
@@ -118,22 +120,26 @@ if config.getboolean("split", "regen") or (not os.path.isfile(outfilename)):
 else:
 	print("Using existing", outfilename);
 
-	
+
+
 #########################
 # Put users in boxes
 #########################
 infilename = outfilename
 outfilename = iodir + "boxes" + filetag + ".out"
 indexfilename = iodir + "boxids" + filetag + ".json"
+tweetcountfilename = iodir + "boxcount" + filetag + ".json"
 if not config.getboolean("locate", "default_filenames"):
 	infilename = config.get("locate", "input_file")
 	outfilename = config.get("locate", "output_file")
 	indexfilename = config.get("locate", "index_file")
+	tweetcountfilename = config.get("locate", "tweetcount_file")
 
 if config.getboolean("locate", "regen") or (not os.path.isfile(outfilename)):
-	locate_users(infilename, outfilename, indexfilename, target2, dims, size=size, county=county, stats_file=stats_file)
+	locate_users(infilename, outfilename, indexfilename, tweetcountfilename, target2, dims, size=size, county=county, stats_file=stats_file)
 else:
 	print("Using existing", outfilename);
+
 
 
 #########################
@@ -152,10 +158,9 @@ if not config.getboolean("network", "default_filenames"):
 	graphfilename = config.get("network", "graph_file")
 
 if config.getboolean("network", "regen") or (not os.path.isfile(outfilename)):
-	build_network(infilename, boxfilename, outfilename, senfilename, graphfilename, size=size, county=county, stats_file=stats_file)
+	build_network(infilename, boxfilename, outfilename, senfilename, graphfilename, size=size, county=county, stats_file=stats_file, randchoice=False)
 else:
 	print("Using existing", outfilename);
-
 
 
 
@@ -192,9 +197,10 @@ else:
 	print("Using existing", outfilename);
 
 
+
 if config.getboolean("null", "runprop"):
 	bindist = float(config.get("null", "bindist"));
-	ut = False;
+	ut = 1;
 	uts = str(ut);
 	
 	#########################
@@ -203,6 +209,7 @@ if config.getboolean("null", "runprop"):
 	boxfilename = iodir + "boxes" + filetag + ".out"
 	indexfilename = iodir + "boxids" + filetag + ".json"
 	confilename = iodir + "connections" + filetag + ".out"
+	tweetcountfilename = iodir + "boxcount" + filetag + ".json"
 	csvfilename = iodir + "nodeinfo" + filetag + ".csv"
 	if not config.getboolean("null", "default_filenames"):
 		boxfilename = config.get("locate", "output_file")
@@ -210,9 +217,10 @@ if config.getboolean("null", "runprop"):
 		csvfilename = config.get("null", "csv_file")
 	
 	if config.getboolean("null", "regen") or (not os.path.isfile(csvfilename)):
-		generate_nodeinfo(boxfilename, indexfilename, confilename, csvfilename, size=size, county=county)
+		generate_nodeinfo(boxfilename, indexfilename, confilename, tweetcountfilename, csvfilename, size=size, county=county)
 	else:
 		print("Using existing", csvfilename);
+
 
 	#########################
 	# Generate null
@@ -237,14 +245,16 @@ if config.getboolean("null", "runprop"):
 		print("Using existing", nullfilename);
 	
 
+
+	
 	#########################
 	# find communities
 	#########################
 	infilename = iodir + "connections" + filetag + ".out"
-	graphfilename = iodir + "nullgraph" + filetag + "_" + str(bindist)+ "_" + uts + ".txt"
-	nullfilename = iodir + "null" + filetag + "_" + str(bindist)+ "_" + uts + ".txt"
-	labelfilename = iodir + "labels" + filetag + "_" + str(bindist)+ "_" + uts + ".json"
-	outfilename = iodir + "nullcommunities" + filetag + "_" + str(bindist)+ "_" + uts + ".out"
+	graphfilename = iodir + "nullgraph" + "_" + str(bindist)+ "_" + uts + filetag + ".txt"
+	nullfilename = iodir + "null" + "_" + str(bindist)+ "_" + uts + filetag + ".txt"
+	labelfilename = iodir + "labels" + "_" + str(bindist)+ "_" + uts + filetag + ".json"
+	outfilename = iodir + "nullcommunities" + "_" + str(bindist)+ "_" + uts + filetag + ".out"
 	if not config.getboolean("null", "default_filenames"):
 		infilename = config.get("network", "con_file")
 		graphfilename = config.get("null", "graph_file")	
@@ -257,12 +267,12 @@ if config.getboolean("null", "runprop"):
 	else:
 		print("Using existing", outfilename);
 
-
+	
 	#########################
 	# draw communities
 	#########################
-	infilename = iodir + "nullcommunities" + filetag + "_" + str(bindist)+ "_" + uts + ".out"
-	outfilename = iodir + "nullcommunities" + filetag + "_" + str(bindist)+ "_" + uts + "." + img_type
+	infilename = iodir + "nullcommunities" + "_" + str(bindist)+ "_" + uts + filetag + ".out"
+	outfilename = iodir + "nullcommunities" + "_" + str(bindist)+ "_" + uts + filetag + "." + img_type
 	if not config.getboolean("null", "default_filenames"):
 		infilename = config.get("network", "communities_file")
 		outfilename = config.get("null", "communities_plot_file")	
@@ -273,12 +283,14 @@ if config.getboolean("null", "runprop"):
 		print("Using existing", outfilename);
 	
 
+
+
 #########################
 # refine communities
 #########################
-infilename = "connections" + filetag + ".out"
-partfilename = "communities" + filetag + ".out"
-outfilename = "refinedcommunities" + filetag + ".out"
+infilename = iodir + "connections" + filetag + ".out"
+partfilename = iodir + "communities" + filetag + ".out"
+outfilename = iodir + "refinedcommunities" + filetag + ".out"
 if not config.getboolean("findcom", "default_filenames"):
 	infilename = config.get("findcom", "input_file")
 	partfilename = config.get("findcom", "find_file")
@@ -288,13 +300,14 @@ if config.getboolean("findcom", "regen") or (not os.path.isfile(outfilename)):
 	refine_communities(infilename, partfilename, outfilename, dims, target2, size=size, county=county);
 else:
 	print("Using existing", outfilename);
-		
+
+	
 
 #########################
 # draw refined communities
 #########################
-infilename = "refinedcommunities" + filetag + ".out"
-outfilename = "refinedcommunities" + filetag + "." + img_type
+infilename = iodir + "refinedcommunities" + filetag + ".out"
+outfilename = iodir + "refinedcommunities" + filetag + "." + img_type
 if not config.getboolean("drawcom", "default_filenames"):
 	infilename = config.get("drawcom", "refine_file")
 	outfilename = config.get("drawcom", "output_refined_file")
@@ -308,9 +321,9 @@ else:
 #########################
 # edit communities
 #########################
-infilename = "connections" + filetag + ".out"
-partfilename = "communities" + filetag + ".out"
-outfilename = "editedcommunities" + filetag + ".out"
+infilename = iodir + "connections" + filetag + ".out"
+partfilename = iodir + "communities" + filetag + ".out"
+outfilename = iodir + "editedcommunities" + filetag + ".out"
 if not config.getboolean("findcom", "default_filenames"):
 	infilename = config.get("findcom", "input_file")
 	partfilename = config.get("findcom", "find_file")
@@ -322,11 +335,12 @@ else:
 	print("Using existing", outfilename);
 
 
+
 #########################
 # draw edited communities
 #########################
-infilename = "editedcommunities" + filetag + ".out"
-outfilename = "editedcommunities" + filetag + "." + img_type
+infilename = iodir + "editedcommunities" + filetag + ".out"
+outfilename = iodir + "editedcommunities" + filetag + "." + img_type
 if not config.getboolean("drawcom", "default_filenames"):
 	infilename = config.get("drawcom", "edited_file")
 	outfilename = config.get("drawcom", "output_edited_file")
@@ -339,8 +353,8 @@ else:
 #########################
 # draw edited communities
 #########################
-infilename = "editedcommunities" + filetag + ".out"
-outfilebase = "map_level" + str(level+1) + "_comm";
+infilename = iodir + "editedcommunities" + filetag + ".out"
+outfilebase = iodir + "map_level" + str(level+1) + "_comm";
 if not config.getboolean("mapcom", "default_filenames"):
 	infilename = config.get("mapcom", "input_file")
 	outfilebase = config.get("mapcom", "output_base")
@@ -352,6 +366,5 @@ else:
 	print("Using existing", outfilename);
 
 print("Done!")
-statsfile.close();
 
 

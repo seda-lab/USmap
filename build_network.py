@@ -1,8 +1,9 @@
 import sys
 import ast
 import json
+import numpy as np
 
-def build_network(tweet_file, userfilename, confilename, senfilename, graphfilename, size=30, county=None, stats_file=None):
+def build_network(tweet_file, userfilename, confilename, senfilename, graphfilename, size=30, county=None, stats_file=None, randchoice=False):
 
 	##user -> box map
 	user_boxes = {};
@@ -43,6 +44,8 @@ def build_network(tweet_file, userfilename, confilename, senfilename, graphfilen
 			num_tweets += 1;
 			if num_tweets %10000 == 0:
 				print("num tweeets", num_tweets,"skipped", skipped, "self", self_mention, "out", out_mention, "used mention", used_mention, "used tweets", used_tweets);
+			#if num_tweets %1000000 == 0:
+			#	break;
 				
 			words = ast.literal_eval(x);
 			user_name = words[4] #user id
@@ -61,7 +64,7 @@ def build_network(tweet_file, userfilename, confilename, senfilename, graphfilen
 					continue; 				#no self mentions
 				if cname not in user_boxes: 
 					out_mention += 1
-					continue;			#correspondant in target area
+					continue;			#correspondant not in target area
 				use_reply_name.append(cname);
 				used_mention += 1
 			
@@ -74,28 +77,45 @@ def build_network(tweet_file, userfilename, confilename, senfilename, graphfilen
 			for r_name in use_reply_name:
 				mentionees.add(r_name);
 				
-				##TODO does this work for counties?!
-				##Treats every county equally
-				tot = len(user_boxes[user_name]) * len(user_boxes[r_name]); #number of boxes to spread the mention across
-				for u in user_boxes[user_name]:
-					for r in user_boxes[r_name]:
-
-						if u in connections:
-							if r in connections[u]:
-								connections[ u ][ r ] += 1.0/tot;
-								sentiment[ u ][ r ] += pol/tot;
+				if randchoice:
+					u = np.random.choice( user_boxes[user_name] )
+					r = np.random.choice( user_boxes[r_name] )
+					if u in connections:
+						if r in connections[u]:
+							connections[ u ][ r ] += 1.0;
+							sentiment[ u ][ r ] += pol;
+						else:
+							connections[ u ][ r ] = 1.0;
+							sentiment[ u ][ r ] = pol;
+					else:
+						connections[u] = {};
+						sentiment[u] = {};
+						connections[ u ][ r ] = 1.0;
+						sentiment[ u ][ r ] = pol;
+				else:
+					##Treats every county equally
+					tot = len(user_boxes[user_name]) * len(user_boxes[r_name]); #number of boxes to spread the mention across
+					for u in user_boxes[user_name]:
+						for r in user_boxes[r_name]:
+							if u in connections:
+								if r in connections[u]:
+									connections[ u ][ r ] += 1.0/tot;
+									sentiment[ u ][ r ] += pol/tot;
+								else:
+									connections[ u ][ r ] = 1.0/tot;
+									sentiment[ u ][ r ] = pol/tot;
 							else:
+								connections[u] = {};
+								sentiment[u] = {};
 								connections[ u ][ r ] = 1.0/tot;
 								sentiment[ u ][ r ] = pol/tot;
-						else:
-							connections[u] = {};
-							sentiment[u] = {};
-							connections[ u ][ r ] = 1.0/tot;
-							sentiment[ u ][ r ] = pol/tot;
-						
+
+				
 			used_tweets += 1;
 
 
+
+	
 	with open(confilename, 'w') as outfile:
 		jsoned = json.dumps(connections);
 		outfile.write( jsoned )	

@@ -1,9 +1,9 @@
-#give every user is together with a list of places that user has tweeted from
+#give every user together with a list of places that user has tweeted from
 import sys
 import ast
 from shapely.geometry import box
 
-def split_users(infilename, outfilename, target2, max_place):
+def split_users(infilename, outfilename, target2, max_place, stats_file=None):
 
 	num_tweets = 0;
 	skipped = 0;
@@ -51,8 +51,9 @@ def split_users(infilename, outfilename, target2, max_place):
 				out.append( [ll , user_locations[name][ll]] );	
 			outfile.write(str(out) + "\n")
 
-	print( str(num_tweets) + " tweets" );
-	print( str(skipped) + " skipped tweets" );
-	print( str(used) + " used tweets" );
-	print( str(len(user_locations)) + " users" );
+	print("###split_users.py",file=stats_file)		
+	print( str(num_tweets) + " tweets",file=stats_file );
+	print( str(skipped) + " skipped tweets",file=stats_file );
+	print( str(used) + " used tweets",file=stats_file );
+	print( str(len(user_locations)) + " users",file=stats_file );
 			

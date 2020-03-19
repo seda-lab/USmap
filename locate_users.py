@@ -11,8 +11,9 @@ from shapely.ops import cascaded_union
 
 from setup_target import *
 import numpy as np
+from collections import Counter;
 
-def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30, county=None, stats_file=None):
+def locate_users(infilename, outfilename, indexfilename, squaresfilename, target2, dims, size=30, county=None, stats_file=None):
 
 	if not county:
 		xmin = dims[0]; ymin = dims[1]; xmax = dims[2]; ymax = dims[3];
@@ -37,21 +38,27 @@ def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30,
 	num_points = 0;
 	num_boxes = 0;
 	num_isec = 0;
+	num_tweets = 0;
 	outfile = open(outfilename, 'w');
 
+	tweet_count = Counter()
 	with open(infilename, 'r') as datafile:
 		for x in datafile:
 			num_users += 1;
-
+			
 			dt = ast.literal_eval(x);
 			name = dt[0];
 			locs = dt[1:];
 			squares = {}
-
+			square_counts = {}
+			
+			nt = 0;
 			for ll in locs:
 				words = ast.literal_eval(ll[0])
 				count = ll[1]
-
+				num_tweets += count;
+				nt += count;
+				
 				#box boundaries
 				if len(words) == 2: #point
 					ll_xmin = words[0]; ll_xmax = words[0];
@@ -101,12 +108,21 @@ def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30,
 								idy_max = int( abs(pymax - ymin)/(ystep) );
 						
 
+					snorm = 0;
 					for i in range(idx_min, idx_max+1):
 						for j in range(idy_min, idy_max+1):
+							snorm += 1;
 							if (i,j) in squares:
 								squares[(i,j)] += count
 							else:
 								squares[(i,j)] = count
+				
+					for i in range(idx_min, idx_max+1):
+						for j in range(idy_min, idy_max+1):
+							if (i,j) in square_counts:
+								square_counts[(i,j)] += count/snorm
+							else:
+								square_counts[(i,j)] = count/snorm
 				
 				else: #county plot
 					place_list = []
@@ -140,6 +156,9 @@ def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30,
 							squares[p] = count
 							
 			if len(squares) == 0: continue;
+			#compute tweet totals
+			for s in squares: tweet_count[ str(s) ] += square_counts[s];
+			
 				
 			#output most likely square
 			best = 0;
@@ -158,10 +177,14 @@ def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30,
 			num_usersi += 1;	
 			outfile.write( str( [name] + out_squares) + "\n" )	
 			if num_users %100 == 0:
-				print(num_users);			
-	outfile.close();
+				print(num_users);
 
+	outfile.close();
+	
+	checksum = sum(tweet_count.values())
 	print("###locate_users.py",file=stats_file)		
+	print( str(num_tweets) + " tweets",file=stats_file );
+	print( str(checksum) + " check tweets",file=stats_file );
 	print( str(num_users) + " users",file=stats_file );
 	print( str(num_usersi) + " users included",file=stats_file );
 	print( str(num_points) + " point locations",file=stats_file );
@@ -180,4 +203,9 @@ def locate_users(infilename, outfilename, indexfilename, target2, dims, size=30,
 	with open(indexfilename, 'w') as ofile:
 		jsoned = json.dumps(index_to_place);
 		ofile.write( jsoned )	
-	
+
+	with open(squaresfilename, 'w') as ofile:
+		jsoned = json.dumps(tweet_count);
+		ofile.write( jsoned )		
+
+
