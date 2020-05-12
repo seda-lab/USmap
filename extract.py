@@ -70,7 +70,7 @@ def extract_mentions(infilename, outfilename, target, stats_file=None):
 
 	tweet_ids = set();
 
-	with open(infilename, 'r') as data_file:
+	with open(infilename, 'r', encoding='utf-8') as data_file:
 		for line in data_file:        
 			try:
 				tweets = [json.loads(line)];
