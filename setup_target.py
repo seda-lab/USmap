@@ -92,6 +92,10 @@ def get_target(place, country, gadm, tolerance):
 		target = box(-5.8, 49.9, 1.8, 55.9 );
 		target2 = cascaded_union( gadm.lookup("England",level=1) + gadm.lookup("Wales",level=1) );
 		target2 = target.intersection( target2 );
+	elif place == "Devon":
+		target = box(-5.8, 49.9, 1.8, 55.9 );
+		target2 = cascaded_union( gadm.lookup("Devon",level=2));
+		target2 = target.intersection( target2 );
 	elif place == "United States+":
 		target = box(-125, 24.5, -67, 49.5);
 		target2 = cascaded_union( country.lookup("United States") );
