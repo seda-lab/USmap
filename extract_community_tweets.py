@@ -123,18 +123,20 @@ def create_polygon(df,communitycol:str,boxcol:str):
 
 def extract_community_tweets():
 
-    with open('extract.out') as usertweets:
-        for i in mapping.keys():
-            print(f'extracting tweets for community {i}')
-            with open(f'extract_community_tweets_{i}.out', 'w') as communitytweet:
-                communitytweet.seek(0)
+    for i in mapping.keys():
+        print(f'extracting tweets for community {i}')
+        with open(f'extract_community_tweets_{i}.out', 'w') as communitytweet:
+            communitytweet.seek(0)
+            with open('extract.out') as usertweets:
+
                 for z in usertweets.readlines():
                     k =ast.literal_eval(z)
                     if sum([mapping[i].contains(point.asPoint(x)) for x in k[2]])>0:
                         communitytweet.write(k[0]+"\n")
                 print(f'tweets extracted to extract_community_tweets_{i}.out')
-                communitytweet.close()
-        usertweets.close()
+                usertweets.close()
+
+            communitytweet.close()
 
 # In[234]:
 
