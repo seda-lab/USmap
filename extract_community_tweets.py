@@ -94,7 +94,7 @@ usermap = pd.merge(user,nodelist, how ='left',left_on='value',right_on='Id')
 
 
 boxids = pd.read_json('boxids.json',orient= 'index').reset_index().rename(columns = {'index':'value',0:"box1",1:"box2"})
-
+boxids.dropna(subset = ['box1','box2'])
 
 # In[163]:
 
