@@ -13,6 +13,7 @@ from find_communities import find_communities, refine_communities, edit_communit
 from draw_communities import draw_map
 from map_communities import map_communities
 from run_louvain import run_louvain_null
+from draw_network import draw_network
 
 if len(sys.argv) < 2:
 	print( "usage: python3 twitter_map.py settings.ini" )
@@ -364,6 +365,31 @@ if config.getboolean("mapcom", "regen") or (not os.path.isfile(outfilename)):
 	map_communities(infilename, outfilebase, dims, target2, size=size, county=county, drop_isolates=config.getboolean("mapcom", "drop_isolates"), use_largest=config.getboolean("mapcom", "use_largest"))
 else:
 	print("Using existing", outfilename);
+
+#########################
+# draw network map 
+#########################
+infilename = iodir + "connections" + filetag + ".out"
+partfilename = iodir + "refinedcommunities" + filetag + ".out"
+outfilename = iodir + "networkplot" + filetag + "." + img_type
+if not config.getboolean("networkplot", "default_filenames"):
+	infilename = config.get("networkplot", "input_file")
+	partfilename = config.get("networkplot", "find_file")
+	outfilename = config.get("networkplot", "output_file")
+
+
+gparams = {
+'max_node':config.getfloat("networkplot", "max_node"),
+'node_factor':config.getfloat("networkplot", "node_factor"),
+'min_self':config.getfloat("networkplot", "min_self"),
+'min_connection':config.getfloat("networkplot", "min_connection"),
+'edge_w':config.getfloat("networkplot", "edge_w")
+}
+if config.getboolean("networkplot", "regen") or (not os.path.isfile(outfilename)):
+	draw_network(infilename, partfilename, outfilename, dims, target2, gparams=gparams, size=size, gadm=gadm, county=county, place=meta_location)
+else:
+	print("Using existing", outfilename);
+
 
 print("Done!")
 
