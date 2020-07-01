@@ -192,11 +192,14 @@ if not config.getboolean("drawcom", "default_filenames"):
 	infilename = config.get("drawcom", "find_file")
 	outfilename = config.get("drawcom", "output_find_file")
 
-if config.getboolean("drawcom", "regen") or (not os.path.isfile(outfilename)):
-	draw_map(infilename, outfilename, dims, target2, size=size, gadm=gadm, county=county, place=meta_location)
-else:
-	print("Using existing", outfilename);
+nodealphafile = config.get("drawcom", "node_alphas")
+print(nodealphafile)
 
+#if config.getboolean("drawcom", "regen") or (not os.path.isfile(outfilename)):
+draw_map(infilename, outfilename, dims, target2, size=size, gadm=gadm, county=county, place=meta_location, nodealphafile=nodealphafile)
+#else:
+#	print("Using existing", outfilename);
+sys.exit(1);
 
 
 if config.getboolean("null", "runprop"):
