@@ -27,7 +27,7 @@ county = None
 # TODO adapt for counties
 # if config.getboolean("global", "use_counties"):
 #     county = county_lookup( config.get("global", "county_location") )
-    
+
 size = config.getint("global", "grid_size");
 
 user_boxes = {};
@@ -41,7 +41,7 @@ with open(userfilename, 'r') as datafile:
             sys.exit(1);
         if county:
             user_boxes[ words[0] ] = words[1:]
-            for w in words[1:]: 
+            for w in words[1:]:
                 if w not in bx_map:
                     bx_map[w] = bxc;
                     bxc += 1;
@@ -50,12 +50,17 @@ with open(userfilename, 'r') as datafile:
                 idx = w[0]*(size)+w[1]
                 bxs.append(idx);
             user_boxes[ words[0] ] = bxs;
+    datafile.close()
+
+print("step 1")
 
 
 # In[156]:
 
 
 user = pd.DataFrame.from_dict(user_boxes, orient='index').reset_index().melt(id_vars = 'index')
+
+print("step 2")
 
 
 # In[157]:
@@ -65,30 +70,20 @@ user.drop(columns = 'variable',inplace = True)
 user.dropna(inplace = True)
 user.value=user.value.astype(int)
 
+print("step 3")
 
-# In[158]:
-
-
-user
-
-
-# In[159]:
 
 
 nodelist = pd.read_csv('nodelist.csv')
 
 
-# In[160]:
+print("step 4")
 
-
-nodelist
-
-
-# In[161]:
 
 
 usermap = pd.merge(user,nodelist, how ='left',left_on='value',right_on='Id')
 
+print("step 5")
 
 # In[162]:
 
@@ -96,25 +91,14 @@ usermap = pd.merge(user,nodelist, how ='left',left_on='value',right_on='Id')
 boxids = pd.read_json('boxids.json',orient= 'index').reset_index().rename(columns = {'index':'value',0:"box1",1:"box2"})
 boxids.dropna(subset = ['box1','box2'],inplace = True)
 
-# In[163]:
-
-
-boxids
-
-
-# In[164]:
+print("step 6")
 
 
 usermap=pd.merge(usermap,boxids,how = 'left',on='value')
 usermap.dropna(subset = ['box1','box2'],inplace = True)
 
-# In[165]:
+print("step 7")
 
-
-usermap
-
-
-# In[166]:
 
 
 usermap['box']= usermap.apply(lambda x: box(x["box1"][0],x["box1"][1],x["box2"][0],x["box2"][1]),axis = 1)
@@ -123,6 +107,7 @@ usermap.drop(columns = ['Id'],inplace = True)
 
 usermap.dropna(subset = ['Label'],inplace = True)
 
+print("step 8")
 
 
 # In[210]:
@@ -131,13 +116,13 @@ usermap.dropna(subset = ['Label'],inplace = True)
 def create_polygon(df,communitycol:str,boxcol:str):
     mapping = dict()
     for i in df[communitycol].unique():
+        print(i)
         bounds = cascaded_union(usermap[df[communitycol]==i][boxcol])
         mapping.update({int(i):bounds})
     return mapping
 
 def extract_community_tweets():
 
-    mapping = create_polygon(usermap,"Label","box")
     with open('extract.out') as usertweets:
         for i in mapping.keys():
             print(f'extracting tweets for community {i}')
@@ -156,6 +141,7 @@ def extract_community_tweets():
 if __name__ == "__main__":
 
     mapping = create_polygon(usermap,'Label','box')
+    print("step 9")
 
     extract_community_tweets()
 
