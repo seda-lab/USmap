@@ -51,8 +51,9 @@ def make_graph(confilename, min_self=0, min_connection=0, use_self=False):
 	solitary=[ n for n,d in G.degree if d==0 ] #should be 0
 	G.remove_nodes_from(solitary)
 	
-	return G;
+	return G;	
 	
+		
 def find_communities(confilename, graphfilename, outfilename, nullfilename = None, labelfilename = None, stats_file=None):
 	
 	G = make_graph(confilename)

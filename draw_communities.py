@@ -38,8 +38,20 @@ def read_partition(infilename, edited):
 	
 	return best_partition;	
 	
-def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=None, place='none', edited=False):
+def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=None, place='none', edited=False, nodealphafile=""):
 
+
+	node_alphas = {};
+	if len(nodealphafile) > 0:
+		with open(nodealphafile, 'r') as infile:
+			for line in infile:
+				words = line.split();
+				node_alphas[words[0]] = float(words[1])
+
+		nmax = node_alphas[ max(node_alphas, key=node_alphas.get) ]
+		nmin = node_alphas[ min(node_alphas, key=node_alphas.get) ]
+		for n in node_alphas: node_alphas[n] = (node_alphas[n]-nmin)/(nmax-nmin)
+	
 	best_partition = read_partition(infilename, edited);
 	vmax = float(len(set(best_partition["data"].values())))
 	vmin = 0;
@@ -86,17 +98,19 @@ def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=N
 				if str(box_id) in best_partition[k]:
 					pn = best_partition[k][ str(box_id) ];
 					col = colour_map[pn]
-
+					al = partition_alpha[k]
+					if len(node_alphas) > 0: al = node_alphas[ str(box_id) ]
+						
 					##draw costal edges
 					if target2.contains(mp):
-						patch = Rectangle( (xmin, ymin) , (xmax-xmin), (ymax-ymin), edgecolor=partition_edge[k], facecolor=col, alpha=partition_alpha[k], zorder=0+partition_z[k]);
+						patch = Rectangle( (xmin, ymin) , (xmax-xmin), (ymax-ymin), edgecolor=partition_edge[k], facecolor=col, alpha=al, zorder=0+partition_z[k]);
 						ax.add_patch(patch)
 					else:
 						poly = target2.intersection(mp)
 						polys = poly_to_coords(poly)
 						for p in polys:
 							
-							patch = pgn(p[0], edgecolor=partition_edge[k], facecolor=col, alpha=partition_alpha[k], zorder=2+partition_z[k]  );
+							patch = pgn(p[0], edgecolor=partition_edge[k], facecolor=col, alpha=al, zorder=2+partition_z[k]  );
 							ax.add_patch(patch)
 
 	else:
