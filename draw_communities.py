@@ -43,16 +43,19 @@ def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=N
 
 	node_alphas = {};
 	if len(nodealphafile) > 0:
-		with open(nodealphafile, 'r') as infile:
-			for line in infile:
-				words = line.split();
-				node_alphas[words[0]] = float(words[1])
+		try:
+			with open(nodealphafile, 'r') as infile:
+				for line in infile:
+					words = line.split();
+					node_alphas[words[0]] = float(words[1])
 
-		nmax = node_alphas[ max(node_alphas, key=node_alphas.get) ]
-		nmin = node_alphas[ min(node_alphas, key=node_alphas.get) ]
-		if nmin!=nmax:
-			for n in node_alphas: node_alphas[n] = (node_alphas[n]-nmin)/(nmax-nmin)
 
+			nmax = node_alphas[ max(node_alphas, key=node_alphas.get) ]
+			nmin = node_alphas[ min(node_alphas, key=node_alphas.get) ]
+			if nmin!=nmax:
+				for n in node_alphas: node_alphas[n] = (node_alphas[n]-nmin)/(nmax-nmin)
+		except:
+			print("There was a problem calculating alphas, check if file is there")
 	
 	best_partition = read_partition(infilename, edited);
 	vmax = float(len(set(best_partition["data"].values())))
