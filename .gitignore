@@ -1,0 +1,8 @@
+*.out
+*.png
+*.txt
+*.json
+graph.*
+gadm.db
+gen-louvain/
+__pycache__/

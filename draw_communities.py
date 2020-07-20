@@ -50,7 +50,9 @@ def draw_map(infilename, outfigname, dims, target2, size=30, county=None, gadm=N
 
 		nmax = node_alphas[ max(node_alphas, key=node_alphas.get) ]
 		nmin = node_alphas[ min(node_alphas, key=node_alphas.get) ]
-		for n in node_alphas: node_alphas[n] = (node_alphas[n]-nmin)/(nmax-nmin)
+		if nmin!=nmax:
+			for n in node_alphas: node_alphas[n] = (node_alphas[n]-nmin)/(nmax-nmin)
+
 	
 	best_partition = read_partition(infilename, edited);
 	vmax = float(len(set(best_partition["data"].values())))
